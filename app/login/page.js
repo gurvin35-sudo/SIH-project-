@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import {
   Leaf,
@@ -21,6 +21,7 @@ import { useLanguage } from '@/components/LanguageContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const { language, t } = useLanguage();
 
   const [portalType, setPortalType] = useState('doctor'); // 'doctor' | 'patient'
@@ -35,6 +36,13 @@ export default function LoginPage() {
   const [patientIdentifier, setPatientIdentifier] = useState('');
   const [patientLoading, setPatientLoading] = useState(false);
   const [patientError, setPatientError] = useState('');
+
+  // Auto redirect if already logged in as Doctor
+  useEffect(() => {
+    if (status === 'authenticated') {
+      window.location.href = '/dashboard';
+    }
+  }, [status]);
 
   // Doctor Login Submit
   const handleDoctorSubmit = async (e) => {
@@ -53,8 +61,8 @@ export default function LoginPage() {
         setError(res.error);
         setLoading(false);
       } else {
-        router.push('/dashboard');
-        router.refresh();
+        // Direct hard redirect to dashboard
+        window.location.href = '/dashboard';
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -83,7 +91,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push(`/patient-portal/${data.patient.id}`);
+      window.location.href = `/patient-portal/${data.patient.id}`;
     } catch (err) {
       setPatientError('Network error while looking up patient record');
       setPatientLoading(false);
@@ -216,7 +224,7 @@ export default function LoginPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Authenticating...</span>
+                    <span>Redirecting to Dashboard...</span>
                   </>
                 ) : (
                   <span>Sign In as Doctor →</span>
