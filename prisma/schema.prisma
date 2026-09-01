@@ -1,0 +1,95 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Doctor {
+  id           String       @id @default(uuid())
+  name         String
+  email        String       @unique
+  password     String
+  regNumber    String?
+  clinicName   String?
+  specialty    String       @default("Ayurveda")
+  phone        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  patients     Patient[]
+  cases        CaseRecord[]
+}
+
+model Patient {
+  id           String       @id @default(uuid())
+  doctorId     String
+  doctor       Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  abhaId       String?      @unique
+  name         String
+  age          Int
+  gender       String
+  contact      String
+  email        String?
+  address      String?
+  bloodGroup   String?
+  allergies    String?
+  prakritiType String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  cases        CaseRecord[]
+}
+
+model CaseRecord {
+  id                 String    @id @default(uuid())
+  patientId          String
+  patient            Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId           String
+  doctor             Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  visitDate          DateTime  @default(now())
+  
+  // Clinical Notes & History
+  chiefComplaint     String
+  duration           String?
+  hpi                String?   // History of Present Illness
+  pastMedicalHistory String?
+  familyHistory      String?
+  
+  // Prakriti Assessment
+  vataScore          Int       @default(0)
+  pittaScore         Int       @default(0)
+  kaphaScore         Int       @default(0)
+  prakritiResult     String?   // e.g. "Vata-Pitta dominant"
+  prakritiAnswers    String?   // JSON string of answers
+  
+  // Ashtavidha Pariksha (Eight-Fold Ayurvedic Examination)
+  nadiPariksha       String?   // Pulse examination
+  jihvaPariksha      String?   // Tongue examination
+  malaPariksha       String?   // Stool/Bowel examination
+  mutraPariksha      String?   // Urine examination
+  sparshaPariksha    String?   // Skin/Touch examination
+  drukPariksha       String?   // Eyes examination
+  shabdaPariksha     String?   // Voice/Speech examination
+  aakritiPariksha    String?   // General build & posture
+  
+  // Digestive Fire & Bowel Nature
+  agniType           String?   // Vishamagni, Tikshnagni, Mandagni, Samagni
+  koshtaType         String?   // Krura, Mridu, Madhyama
+  
+  // Dual Diagnosis
+  ayurvedicDiagnosis String    // e.g. "Amavata", "Amlapitta", "Sandhigatavata"
+  modernDiagnosis    String?   // e.g. "Rheumatoid Arthritis (ICD-11: FA20)"
+  prognosis          String?   // Sukha Sadhya, Krichra Sadhya, Asadhya, Yapya
+  
+  // Chikitsa (Treatment) & Prescription
+  prescription       String    // JSON string array of medications: [{ name, form, dose, anupana, timing }]
+  panchakarmaAdvice  String?   // Therapies (Abhyanga, Swedana, Shirodhara, Basti, etc.)
+  pathyaDiet         String?   // Wholesome diet/habits (DOs)
+  apathyaDiet        String?   // Unwholesome diet/habits (DONTs)
+  lifestyleAdvice    String?   // Yoga asanas, Pranayama, Dinacharya
+  followUpDate       DateTime?
+  
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
