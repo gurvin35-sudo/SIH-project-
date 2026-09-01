@@ -3,13 +3,12 @@ import AuthProvider from '@/components/AuthProvider';
 import { LanguageProvider } from '@/components/LanguageContext';
 import Navbar from '@/components/Navbar';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'AyushCase — AYUSH Patient Case-Taking & Clinical Software',
   description:
     'Smart Automation Patient Case-Taking Software for Ayurveda, Yoga, Unani, Siddha, and Homeopathy (AYUSH) Practitioners. Built for Smart India Hackathon.',
-  icons: {
-    icon: '/favicon.ico',
-  },
 };
 
 export default function RootLayout({ children }) {
