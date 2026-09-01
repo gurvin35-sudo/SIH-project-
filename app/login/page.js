@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import {
   Leaf,
@@ -10,18 +10,14 @@ import {
   Mail,
   Loader2,
   AlertCircle,
-  Sparkles,
   Stethoscope,
   User,
-  ShieldCheck,
-  Phone,
-  ArrowRight
+  ShieldCheck
 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
   const { language, t } = useLanguage();
 
   const [portalType, setPortalType] = useState('doctor'); // 'doctor' | 'patient'
@@ -36,13 +32,6 @@ export default function LoginPage() {
   const [patientIdentifier, setPatientIdentifier] = useState('');
   const [patientLoading, setPatientLoading] = useState(false);
   const [patientError, setPatientError] = useState('');
-
-  // Auto redirect if already logged in as Doctor
-  useEffect(() => {
-    if (status === 'authenticated') {
-      window.location.href = '/dashboard';
-    }
-  }, [status]);
 
   // Doctor Login Submit
   const handleDoctorSubmit = async (e) => {
@@ -61,8 +50,8 @@ export default function LoginPage() {
         setError(res.error);
         setLoading(false);
       } else {
-        // Direct hard redirect to dashboard
-        window.location.href = '/dashboard';
+        router.push('/dashboard');
+        router.refresh();
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -91,7 +80,7 @@ export default function LoginPage() {
         return;
       }
 
-      window.location.href = `/patient-portal/${data.patient.id}`;
+      router.push(`/patient-portal/${data.patient.id}`);
     } catch (err) {
       setPatientError('Network error while looking up patient record');
       setPatientLoading(false);
@@ -224,7 +213,7 @@ export default function LoginPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Redirecting to Dashboard...</span>
+                    <span>Signing in...</span>
                   </>
                 ) : (
                   <span>Sign In as Doctor →</span>
