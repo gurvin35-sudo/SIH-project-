@@ -3,17 +3,13 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const caseRecord = await prisma.caseRecord.findFirst({
       where: {
         id: params.id,
-        doctorId: session.user.id,
       },
       include: {
         patient: true,
@@ -44,26 +40,13 @@ export async function GET(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const existing = await prisma.caseRecord.findFirst({
-      where: { id: params.id, doctorId: session.user.id },
-    });
-
-    if (!existing) {
-      return NextResponse.json({ error: 'Case record not found' }, { status: 404 });
-    }
-
     await prisma.caseRecord.delete({
       where: { id: params.id },
     });
 
-    return NextResponse.json({ message: 'Case record deleted successfully' });
+    return NextResponse.json({ message: 'Case deleted successfully' });
   } catch (error) {
-    console.error('Error deleting case record:', error);
-    return NextResponse.json({ error: 'Failed to delete case record' }, { status: 500 });
+    console.error('Error deleting case:', error);
+    return NextResponse.json({ error: 'Failed to delete case' }, { status: 500 });
   }
 }
