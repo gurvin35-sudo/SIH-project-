@@ -21,13 +21,10 @@ import { useLanguage } from './LanguageContext';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { language, setLanguage, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-
-  // If on login or signup pages and no session, we show a simplified header
-  const isAuthPage = pathname === '/login' || pathname === '/signup';
 
   const navLinks = [
     { href: '/dashboard', label: t('dashboard'), icon: LayoutDashboard },
@@ -93,7 +90,11 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          {session ? (
+          {status === 'loading' ? (
+            <div className="hidden md:flex items-center gap-4">
+              <div className="h-8 w-24 bg-stone-100 rounded-lg animate-pulse" />
+            </div>
+          ) : session ? (
             <div className="hidden md:flex items-center gap-6">
               <nav className="flex items-center gap-1">
                 {navLinks.map((link) => {
