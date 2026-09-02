@@ -2,11 +2,15 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { ensureDatabaseSeeded } from '@/lib/auto-seed';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
+    // Auto-populate sample data if database is empty on Vercel/serverless
+    await ensureDatabaseSeeded(prisma);
+
     const session = await getServerSession(authOptions);
     let doctorId = session?.user?.id;
     if (!doctorId) {
