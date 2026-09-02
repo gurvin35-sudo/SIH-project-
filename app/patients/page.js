@@ -57,10 +57,44 @@ export default function PatientsPage() {
       if (prakritiFilter !== 'all') params.set('prakriti', prakritiFilter);
 
       const res = await fetch(`/api/patients?${params.toString()}`);
+      let patientList = [];
       if (res.ok) {
         const data = await res.json();
-        setPatients(data.patients || []);
+        patientList = data.patients || [];
       }
+
+      // Merge locally created patients (retains patients even across Vercel cold-starts)
+      try {
+        const localRaw = localStorage.getItem('ayushcase_local_patients');
+        if (localRaw) {
+          const localPatients = JSON.parse(localRaw);
+          if (Array.isArray(localPatients)) {
+            localPatients.forEach((lp) => {
+              const alreadyExists = patientList.some(
+                (sp) => sp.id === lp.id || (lp.abhaId && sp.abhaId === lp.abhaId) || (sp.name === lp.name && sp.contact === lp.contact)
+              );
+              if (!alreadyExists) {
+                // Check if filters match
+                let match = true;
+                if (searchQuery) {
+                  const s = searchQuery.toLowerCase();
+                  match = lp.name?.toLowerCase().includes(s) || lp.contact?.includes(s) || lp.abhaId?.includes(s);
+                }
+                if (genderFilter !== 'all' && lp.gender !== genderFilter) match = false;
+                if (prakritiFilter !== 'all' && !lp.prakritiType?.includes(prakritiFilter)) match = false;
+
+                if (match) {
+                  patientList.unshift(lp);
+                }
+              }
+            });
+          }
+        }
+      } catch (e) {
+        // ignore local parse errors
+      }
+
+      setPatients(patientList);
     } catch (err) {
       console.error('Error fetching patients:', err);
     } finally {
@@ -93,6 +127,18 @@ export default function PatientsPage() {
         setModalError(data.error || 'Failed to save patient');
         setModalSubmitting(false);
         return;
+      }
+
+      const createdPatient = data.patient;
+
+      // Save to local storage cache so it persists forever in the browser
+      if (createdPatient) {
+        try {
+          const localRaw = localStorage.getItem('ayushcase_local_patients');
+          const localList = localRaw ? JSON.parse(localRaw) : [];
+          localList.unshift(createdPatient);
+          localStorage.setItem('ayushcase_local_patients', JSON.stringify(localList));
+        } catch (e) {}
       }
 
       // Reset form and close modal

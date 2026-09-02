@@ -57,6 +57,15 @@ export default function NewPatientPage() {
         return;
       }
 
+      if (data.patient) {
+        try {
+          const localRaw = localStorage.getItem('ayushcase_local_patients');
+          const localList = localRaw ? JSON.parse(localRaw) : [];
+          localList.unshift(data.patient);
+          localStorage.setItem('ayushcase_local_patients', JSON.stringify(localList));
+        } catch (e) {}
+      }
+
       // Navigate to patient's new case taking form immediately!
       router.push(`/patients/${data.patient.id}/case-taking`);
     } catch (err) {

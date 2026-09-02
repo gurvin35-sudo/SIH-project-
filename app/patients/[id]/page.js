@@ -42,13 +42,39 @@ export default function PatientDetailPage() {
       try {
         setLoading(true);
         const res = await fetch(`/api/patients/${params.id}`);
-        if (!res.ok) {
-          setError('Patient not found');
+        if (res.ok) {
+          const data = await res.json();
+          setPatient(data.patient);
           return;
         }
-        const data = await res.json();
-        setPatient(data.patient);
+
+        // Fallback to locally stored patient record
+        try {
+          const localRaw = localStorage.getItem('ayushcase_local_patients');
+          if (localRaw) {
+            const list = JSON.parse(localRaw);
+            const found = list.find((p) => p.id === params.id);
+            if (found) {
+              setPatient(found);
+              return;
+            }
+          }
+        } catch (e) {}
+
+        setError('Patient not found');
       } catch (err) {
+        // Fallback on network error
+        try {
+          const localRaw = localStorage.getItem('ayushcase_local_patients');
+          if (localRaw) {
+            const list = JSON.parse(localRaw);
+            const found = list.find((p) => p.id === params.id);
+            if (found) {
+              setPatient(found);
+              return;
+            }
+          }
+        } catch (e) {}
         setError('Failed to load patient history');
       } finally {
         setLoading(false);
