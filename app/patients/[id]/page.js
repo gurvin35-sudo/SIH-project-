@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { formatDate, formatABHA, getDoshaColor } from '@/lib/utils';
 import { useLanguage } from '@/components/LanguageContext';
+import AIPatientSummaryModal from '@/components/AIPatientSummaryModal';
+import AIPatientSummaryCard from '@/components/AIPatientSummaryCard';
 
 export default function PatientDetailPage() {
   const params = useParams();
@@ -33,6 +35,7 @@ export default function PatientDetailPage() {
   const [patient, setPatient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [summaryModalOpen, setSummaryModalOpen] = useState(false);
 
   useEffect(() => {
     async function fetchPatientData() {
@@ -118,14 +121,25 @@ export default function PatientDetailPage() {
             </div>
           </div>
 
-          {/* New Case Button */}
-          <Link
-            href={`/patients/${patient.id}/case-taking`}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 transition transform hover:-translate-y-0.5 self-start md:self-auto"
-          >
-            <FilePlus2 className="w-4 h-4" />
-            <span>+ Start New Case Record</span>
-          </Link>
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+            <button
+              onClick={() => setSummaryModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-800 to-herb text-white hover:from-emerald-900 hover:to-emerald-950 shadow-md shadow-emerald-900/20 transition transform hover:-translate-y-0.5"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-300 animate-pulse" />
+              <span>AI Handover Summary</span>
+            </button>
+
+            {/* New Case Button */}
+            <Link
+              href={`/patients/${patient.id}/case-taking`}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 transition transform hover:-translate-y-0.5"
+            >
+              <FilePlus2 className="w-4 h-4" />
+              <span>+ Start New Case Record</span>
+            </Link>
+          </div>
         </div>
 
         {/* Demographics Grid */}
@@ -174,6 +188,9 @@ export default function PatientDetailPage() {
           </div>
         )}
       </div>
+
+      {/* AI Clinical Handover Summary Card */}
+      <AIPatientSummaryCard patient={patient} />
 
       {/* Longitudinal Case History Timeline */}
       <div className="space-y-4">
@@ -344,6 +361,14 @@ export default function PatientDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Full AI Handover Modal */}
+      <AIPatientSummaryModal
+        patientId={patient.id}
+        patientData={patient}
+        isOpen={summaryModalOpen}
+        onClose={() => setSummaryModalOpen(false)}
+      />
     </div>
   );
 }

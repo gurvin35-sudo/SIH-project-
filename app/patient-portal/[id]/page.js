@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { formatDate, formatABHA, getDoshaColor } from '@/lib/utils';
 import { DIET_PRESETS } from '@/lib/ayush-data';
+import AIPatientSummaryCard from '@/components/AIPatientSummaryCard';
+import AIPatientSummaryModal from '@/components/AIPatientSummaryModal';
 
 export default function PatientPortalPage() {
   const params = useParams();
@@ -30,6 +32,7 @@ export default function PatientPortalPage() {
   const [patient, setPatient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [summaryModalOpen, setSummaryModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadPatientPortalData() {
@@ -106,13 +109,23 @@ export default function PatientPortalPage() {
           </div>
         </div>
 
-        <Link
-          href="/login"
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition self-start sm:self-auto"
-        >
-          <LogOut className="w-3.5 h-3.5" />
-          <span>Exit Portal</span>
-        </Link>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => setSummaryModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-700 to-herb text-white hover:from-emerald-800 hover:to-emerald-900 shadow-sm transition"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-300 animate-pulse" />
+            <span>AI Medical Passport</span>
+          </button>
+
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Exit Portal</span>
+          </Link>
+        </div>
       </div>
 
       {/* ABHA Digital Health Card */}
@@ -167,6 +180,9 @@ export default function PatientPortalPage() {
           </div>
         </div>
       </div>
+
+      {/* AI Doctor Handover & Portable Medical Passport Card */}
+      <AIPatientSummaryCard patient={patient} isPatientPortal={true} />
 
       {/* Personalized Ahara & Vihara Lifestyle Tips */}
       <div className="bg-white rounded-3xl border border-stone-200 p-6 shadow-xs space-y-4">
@@ -299,6 +315,15 @@ export default function PatientPortalPage() {
           </div>
         )}
       </div>
+
+      {/* Portable Medical Passport AI Modal */}
+      <AIPatientSummaryModal
+        patientId={patient.id}
+        patientData={patient}
+        isOpen={summaryModalOpen}
+        onClose={() => setSummaryModalOpen(false)}
+        isPatientPortal={true}
+      />
     </div>
   );
 }

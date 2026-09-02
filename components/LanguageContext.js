@@ -93,6 +93,10 @@ const translations = {
     printPrescription: 'Print / Download PDF',
     backToPatients: '← Back to Patients',
     backToDashboard: '← Back to Dashboard',
+    aiSummary: 'AI Clinical Summary',
+    doctorHandover: 'AI Doctor Handover',
+    medicalPassport: 'Portable Medical Passport',
+    copySummary: 'Copy Handover Note',
   },
   hi: {
     // Navigation
@@ -178,6 +182,10 @@ const translations = {
     printPrescription: 'प्रिंट / PDF डाउनलोड',
     backToPatients: '← रोगी सूची पर वापस',
     backToDashboard: '← डैशबोर्ड पर वापस',
+    aiSummary: 'एआई नैदानिक सारांश',
+    doctorHandover: 'एआई चिकित्सक हैंडओवर सारांश',
+    medicalPassport: 'पोर्टेबल डिजिटल हेल्थ पासपोर्ट',
+    copySummary: 'हैंडओवर नोट कॉपी करें',
   },
 };
 

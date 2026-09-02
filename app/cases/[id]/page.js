@@ -20,6 +20,7 @@ import {
 import { formatDate, formatABHA } from '@/lib/utils';
 import { useLanguage } from '@/components/LanguageContext';
 import CasePrintView from '@/components/CasePrintView';
+import AIPatientSummaryModal from '@/components/AIPatientSummaryModal';
 
 export default function CaseDetailPage() {
   const params = useParams();
@@ -30,6 +31,7 @@ export default function CaseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [summaryModalOpen, setSummaryModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadCase() {
@@ -114,6 +116,15 @@ export default function CaseDetailPage() {
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             type="button"
+            onClick={() => setSummaryModalOpen(true)}
+            className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-emerald-800 to-herb text-white hover:from-emerald-900 hover:to-emerald-950 shadow-xs transition flex items-center gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-300 animate-pulse" />
+            <span>AI Doctor Handover</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleDeleteCase}
             disabled={deleting}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition flex items-center gap-1.5"
@@ -129,6 +140,14 @@ export default function CaseDetailPage() {
         caseData={caseRecord}
         patient={caseRecord.patient}
         doctor={caseRecord.doctor}
+      />
+
+      {/* Full AI Handover Modal */}
+      <AIPatientSummaryModal
+        patientId={caseRecord.patientId}
+        patientData={caseRecord.patient}
+        isOpen={summaryModalOpen}
+        onClose={() => setSummaryModalOpen(false)}
       />
     </div>
   );
