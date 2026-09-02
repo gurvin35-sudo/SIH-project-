@@ -133,9 +133,9 @@ export default function PatientPortalPage() {
         <div className="space-y-1 text-center sm:text-left relative z-10">
           <div className="flex items-center gap-2 justify-center sm:justify-start">
             <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-white text-emerald-950 shadow-xs">
-              SIH Core Workflow
+              Pre-Consultation Intake
             </span>
-            <span className="text-xs font-bold text-amber-200">Patient → AI → OCR → Doctor</span>
+            <span className="text-xs font-bold text-amber-200">AI Health Assessment</span>
           </div>
           <h2 className="text-lg sm:text-xl font-black text-white">
             Start AI Health Interview & Upload Medical Reports
@@ -217,7 +217,7 @@ export default function PatientPortalPage() {
             <span className="text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
               Pre-Consultation Intake
             </span>
-            <span className="text-xs font-bold text-stone-700">SIH AI Workflow</span>
+            <span className="text-xs font-bold text-stone-700">Digital Intake</span>
           </div>
           <h3 className="font-extrabold text-sm sm:text-base text-stone-900">
             Have a new symptom or updated lab report?

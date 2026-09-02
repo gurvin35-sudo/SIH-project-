@@ -237,9 +237,9 @@ export default function LoginPage() {
             <div className="p-4 bg-gradient-to-r from-emerald-800 to-herb text-white rounded-2xl shadow-sm space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded bg-amber-300 text-amber-950">
-                  SIH Core Workflow
+                  Pre-Consultation Intake
                 </span>
-                <span className="text-[10px] text-emerald-200">Patient → AI → Doctor</span>
+                <span className="text-[10px] text-emerald-200">AI Health Assessment</span>
               </div>
               <div>
                 <h3 className="font-extrabold text-xs sm:text-sm">Start AI Health Intake & Assessment</h3>

@@ -80,26 +80,6 @@ export default function HomePage() {
               </Link>
             )}
           </div>
-
-          {/* SIH Patient-First Core Flow Banner */}
-          <div className="pt-4 border-t border-emerald-800/60 space-y-2">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-amber-300 block">
-              SIH Problem Statement Workflow:
-            </span>
-            <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-emerald-100">
-              <span className="bg-emerald-800/80 px-2 py-0.5 rounded-md border border-emerald-600/60">1. Patient</span>
-              <span>→</span>
-              <span className="bg-emerald-800/80 px-2 py-0.5 rounded-md border border-emerald-600/60">2. AI History (Voice/Text)</span>
-              <span>→</span>
-              <span className="bg-emerald-800/80 px-2 py-0.5 rounded-md border border-emerald-600/60">3. Document OCR</span>
-              <span>→</span>
-              <span className="bg-emerald-800/80 px-2 py-0.5 rounded-md border border-emerald-600/60">4. Medical Timeline</span>
-              <span>→</span>
-              <span className="bg-emerald-800/80 px-2 py-0.5 rounded-md border border-emerald-600/60">5. AI Clinical Summary</span>
-              <span>→</span>
-              <span className="bg-amber-400/90 text-amber-950 font-black px-2 py-0.5 rounded-md">6. Doctor Console</span>
-            </div>
-          </div>
         </div>
       </section>
 
