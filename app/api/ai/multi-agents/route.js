@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { generateLLMResponse } from '@/lib/ai-provider';
 
 export const dynamic = 'force-dynamic';
 
@@ -140,7 +141,32 @@ export async function POST(request) {
       });
     }
 
-    // 3. Generate Clinical / Domain Response based on selected Agent Persona
+    // 3. Try Live LLM (Gemini 1.5 Flash / OpenAI GPT-4o-mini) if configured
+    const systemPrompts = {
+      ayur_vaidya: `You are AyurVaidya AI, an expert classical Ayurvedic consultant. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Provide structured Ayurvedic guidance on Dosha balance (Vata, Pitta, Kapha), Prakriti, Dinacharya, classical herbs (Ashwagandha, Shatavari, Triphala, etc.), and Pathya-Apathya diet. Always maintain a professional, respectful tone and recommend consulting a qualified Vaidya.`,
+      clinical_pariksha: `You are Clinical Pariksha Assistant, a professional AYUSH doctor clinical case-taking guide. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Assist practitioners with Ashtavidha Pariksha (Nadi, Jihva, Mala, Mutra), Dashavidha Pariksha, Agni & Koshta assessment, ICD-11 dual diagnosis mapping, and Panchakarma protocols.`,
+      herb_drug_safety: `You are AyushGuard, an expert in botanical pharmacology and herb-drug interactions. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Analyze safety, interactions between Ayurvedic herbs (e.g. Guggulu, Shunthi, Pippali, Bhasmas) and modern allopathic medications (e.g. Warfarin, Metformin, NSAIDs), pregnancy contraindications, and organ cautions.`,
+      patient_navigator: `You are AyushCare, a compassionate patient health companion. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Explain symptoms in simple layman terms, guide on Anupana (taking medicines with warm water/milk), and encourage uploading lab reports and prescriptions before doctor consultation.`
+    };
+
+    const llmResult = await generateLLMResponse({
+      systemPrompt: systemPrompts[agentId] || systemPrompts.ayur_vaidya,
+      userMessage: cleanMsg,
+      conversationHistory
+    });
+
+    if (llmResult?.text) {
+      return NextResponse.json({
+        success: true,
+        agentId: selectedAgent.id,
+        agentName: selectedAgent.name,
+        response: llmResult.text,
+        provider: llmResult.provider,
+        inDomain: true
+      });
+    }
+
+    // 4. Built-in Classical AYUSH Knowledge Fallback Engine
     let responseText = '';
     const lower = cleanMsg.toLowerCase();
 
