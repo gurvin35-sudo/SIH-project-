@@ -57,6 +57,14 @@ export async function GET(request) {
           orderBy: { visitDate: 'desc' },
           take: 1,
         },
+        documents: {
+          select: {
+            id: true,
+            title: true,
+            docType: true,
+            docDate: true,
+          },
+        },
       },
     });
 

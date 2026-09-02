@@ -233,6 +233,35 @@ export default function LoginPage() {
         {/* ================= PATIENT LOGIN VIEW ================= */}
         {portalType === 'patient' && (
           <div className="space-y-4 animate-in fade-in">
+            {/* New Assessment Primary Action */}
+            <div className="p-4 bg-gradient-to-r from-emerald-800 to-herb text-white rounded-2xl shadow-sm space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded bg-amber-300 text-amber-950">
+                  SIH Core Workflow
+                </span>
+                <span className="text-[10px] text-emerald-200">Patient → AI → Doctor</span>
+              </div>
+              <div>
+                <h3 className="font-extrabold text-xs sm:text-sm">Start AI Health Intake & Assessment</h3>
+                <p className="text-[11px] text-emerald-100/90 leading-tight mt-0.5">
+                  Answer questions via voice/text & upload medical reports before seeing your doctor.
+                </p>
+              </div>
+              <Link
+                href="/patient-portal"
+                className="w-full py-2 rounded-xl text-xs font-black bg-white text-emerald-950 hover:bg-emerald-50 transition flex items-center justify-center gap-1.5 shadow-xs"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Launch AI Health Assessment →</span>
+              </Link>
+            </div>
+
+            <div className="flex items-center gap-2 my-1">
+              <div className="flex-1 h-px bg-stone-200" />
+              <span className="text-[10px] uppercase font-bold text-stone-400">or lookup past records</span>
+              <div className="flex-1 h-px bg-stone-200" />
+            </div>
+
             {/* Demo Patient Quick Fill */}
             <div className="p-3 bg-sky-50 rounded-2xl border border-sky-200 text-xs flex items-center justify-between">
               <div>

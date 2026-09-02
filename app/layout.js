@@ -2,6 +2,7 @@ import './globals.css';
 import AuthProvider from '@/components/AuthProvider';
 import { LanguageProvider } from '@/components/LanguageContext';
 import Navbar from '@/components/Navbar';
+import MultiAgentChatbot from '@/components/MultiAgentChatbot';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }) {
             <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
               {children}
             </main>
+            <MultiAgentChatbot />
           </LanguageProvider>
         </AuthProvider>
       </body>

@@ -97,6 +97,8 @@ export default function CaseTakingPage() {
     followUpDate: '',
   });
 
+  const [autoPopulatedFromAi, setAutoPopulatedFromAi] = useState(false);
+
   // Fetch Patient Details
   useEffect(() => {
     async function loadPatient() {
@@ -108,14 +110,29 @@ export default function CaseTakingPage() {
           return;
         }
         const data = await res.json();
-        setPatient(data.patient);
+        const p = data.patient;
+        setPatient(p);
 
-        // Pre-populate if patient already had a prakriti
-        if (data.patient?.prakritiType) {
-          setFormData((prev) => ({
-            ...prev,
-            prakritiResult: data.patient.prakritiType,
-          }));
+        // Pre-populate if patient completed pre-consultation history or has prakriti
+        let hasAiData = false;
+        setFormData((prev) => {
+          const next = { ...prev };
+          if (p.chiefComplaint) {
+            next.chiefComplaint = p.chiefComplaint;
+            hasAiData = true;
+          }
+          if (p.duration) next.duration = p.duration;
+          if (p.hpi) next.hpi = p.hpi;
+          if (p.pastMedicalHistory) next.pastMedicalHistory = p.pastMedicalHistory;
+          if (p.familyHistory) next.familyHistory = p.familyHistory;
+          if (p.prakritiType) next.prakritiResult = p.prakritiType;
+          if (p.ayushAgni) next.agniType = p.ayushAgni.split(' ')[0] || 'Samagni';
+          if (p.ayushKoshta) next.koshtaType = p.ayushKoshta.split(' ')[0] || 'Madhyama';
+          return next;
+        });
+
+        if (hasAiData) {
+          setAutoPopulatedFromAi(true);
         }
       } catch (err) {
         setError('Failed to load patient information');
@@ -302,10 +319,32 @@ export default function CaseTakingPage() {
             type="date"
             value={formData.visitDate}
             onChange={(e) => setFormData({ ...formData, visitDate: e.target.value })}
-            className="text-xs px-2.5 py-1.5 rounded-lg border border-stone-300 font-semibold text-stone-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            className="p-2 text-xs rounded-xl border border-stone-300 font-medium focus:ring-2 focus:ring-emerald-500"
           />
         </div>
       </div>
+
+      {/* AI Pre-Population Notice */}
+      {autoPopulatedFromAi && (
+        <div className="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 shadow-xs flex items-center justify-between gap-3 animate-in fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+              ⚡
+            </div>
+            <div>
+              <span className="font-extrabold text-xs text-emerald-950 block">
+                Auto-populated from Patient's AI Pre-Consultation History
+              </span>
+              <p className="text-[11px] text-emerald-800">
+                Chief Complaint, Duration, HPI, Past History, Family History, Prakriti, and Agni/Koshta have been loaded. Doctor verification active.
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] uppercase font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full shrink-0">
+            Time Saved: ~15 mins
+          </span>
+        </div>
+      )}
 
       {/* Error Alert */}
       {error && (

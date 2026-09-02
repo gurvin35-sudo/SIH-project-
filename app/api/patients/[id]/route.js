@@ -15,6 +15,9 @@ export async function GET(request, { params }) {
         cases: {
           orderBy: { visitDate: 'desc' },
         },
+        documents: {
+          orderBy: { docDate: 'desc' },
+        },
       },
     });
 
@@ -39,20 +42,64 @@ export async function PUT(request, { params }) {
     }
 
     const body = await request.json();
-    const { name, age, gender, contact, email, address, bloodGroup, allergies, prakritiType } = body;
+    const {
+      name,
+      age,
+      gender,
+      contact,
+      email,
+      address,
+      bloodGroup,
+      allergies,
+      prakritiType,
+      preConsultationStatus,
+      chiefComplaint,
+      duration,
+      hpi,
+      pastMedicalHistory,
+      pastSurgicalHistory,
+      currentMedicines,
+      familyHistory,
+      personalHistory,
+      reviewOfSystems,
+      ayushAgni,
+      ayushKoshta,
+      aiSummary,
+      redFlags,
+    } = body;
+
+    const dataToUpdate = {};
+    if (name !== undefined) dataToUpdate.name = name;
+    if (age !== undefined) dataToUpdate.age = age ? parseInt(age) : null;
+    if (gender !== undefined) dataToUpdate.gender = gender;
+    if (contact !== undefined) dataToUpdate.contact = contact;
+    if (email !== undefined) dataToUpdate.email = email;
+    if (address !== undefined) dataToUpdate.address = address;
+    if (bloodGroup !== undefined) dataToUpdate.bloodGroup = bloodGroup;
+    if (allergies !== undefined) dataToUpdate.allergies = allergies;
+    if (prakritiType !== undefined) dataToUpdate.prakritiType = prakritiType;
+    if (preConsultationStatus !== undefined) dataToUpdate.preConsultationStatus = preConsultationStatus;
+    if (chiefComplaint !== undefined) dataToUpdate.chiefComplaint = chiefComplaint;
+    if (duration !== undefined) dataToUpdate.duration = duration;
+    if (hpi !== undefined) dataToUpdate.hpi = hpi;
+    if (pastMedicalHistory !== undefined) dataToUpdate.pastMedicalHistory = pastMedicalHistory;
+    if (pastSurgicalHistory !== undefined) dataToUpdate.pastSurgicalHistory = pastSurgicalHistory;
+    if (currentMedicines !== undefined) dataToUpdate.currentMedicines = currentMedicines;
+    if (familyHistory !== undefined) dataToUpdate.familyHistory = familyHistory;
+    if (personalHistory !== undefined) dataToUpdate.personalHistory = personalHistory;
+    if (reviewOfSystems !== undefined) dataToUpdate.reviewOfSystems = reviewOfSystems;
+    if (ayushAgni !== undefined) dataToUpdate.ayushAgni = ayushAgni;
+    if (ayushKoshta !== undefined) dataToUpdate.ayushKoshta = ayushKoshta;
+    if (aiSummary !== undefined) dataToUpdate.aiSummary = typeof aiSummary === 'object' ? JSON.stringify(aiSummary) : aiSummary;
+    if (redFlags !== undefined) dataToUpdate.redFlags = typeof redFlags === 'object' ? JSON.stringify(redFlags) : redFlags;
 
     const updated = await prisma.patient.update({
       where: { id: params.id },
-      data: {
-        name,
-        age: age ? parseInt(age) : null,
-        gender,
-        contact,
-        email,
-        address,
-        bloodGroup,
-        allergies,
-        prakritiType,
+      data: dataToUpdate,
+      include: {
+        documents: {
+          orderBy: { docDate: 'desc' },
+        },
       },
     });
 

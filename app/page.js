@@ -16,7 +16,8 @@ import {
   ChevronRight,
   CheckCircle2,
   Users,
-  Compass
+  Compass,
+  HeartPulse
 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 
@@ -52,51 +53,51 @@ export default function HomePage() {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-3.5 pt-2">
+            <Link
+              href="/patient-portal"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-black text-xs sm:text-sm bg-amber-400 hover:bg-amber-300 text-amber-950 shadow-lg shadow-amber-500/30 transition transform hover:-translate-y-0.5 ring-2 ring-amber-300/60"
+            >
+              <HeartPulse className="w-4 h-4 animate-pulse" />
+              <span>Patient Portal (Start AI Health Assessment) →</span>
+            </Link>
+
             {session ? (
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-emerald-400 hover:bg-emerald-300 text-emerald-950 shadow-lg shadow-emerald-500/30 transition transform hover:-translate-y-0.5"
+                className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl font-bold text-xs sm:text-sm bg-emerald-700/90 hover:bg-emerald-600 text-white border border-emerald-500/60 shadow-md transition transform hover:-translate-y-0.5"
               >
-                <span>Go to Doctor Dashboard</span>
+                <Stethoscope className="w-4 h-4" />
+                <span>Doctor Console</span>
                 <ChevronRight className="w-4 h-4" />
               </Link>
             ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-xs sm:text-sm bg-emerald-400 hover:bg-emerald-300 text-emerald-950 shadow-lg shadow-emerald-500/30 transition transform hover:-translate-y-0.5"
-                >
-                  <Stethoscope className="w-4 h-4" />
-                  <span>Doctor Login (Demo)</span>
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-                <Link
-                  href="/signup"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-xs sm:text-sm bg-emerald-900/80 hover:bg-emerald-800 text-white border border-emerald-700 transition"
-                >
-                  <span>Register Clinic</span>
-                </Link>
-              </>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl font-bold text-xs sm:text-sm bg-emerald-800/90 hover:bg-emerald-700 text-white border border-emerald-600/60 shadow-md transition"
+              >
+                <Stethoscope className="w-4 h-4" />
+                <span>Doctor Login (Demo)</span>
+              </Link>
             )}
           </div>
 
-          {/* Features Pills */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-emerald-800/60 text-xs text-emerald-200/90">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0" />
-              <span>Prakriti Scoring Engine</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0" />
-              <span>Ashtavidha Pariksha</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0" />
-              <span>Voice-to-Text Input</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0" />
-              <span>1-Click PDF / Print</span>
+          {/* SIH Patient-First Core Flow Banner */}
+          <div className="pt-4 border-t border-emerald-800/60 space-y-2">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-amber-300 block">
+              SIH Problem Statement Workflow:
+            </span>
+            <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-emerald-100">
+              <span className="bg-emerald-800/80 px-2 py-0.5 rounded-md border border-emerald-600/60">1. Patient</span>
+              <span>→</span>
+              <span className="bg-emerald-800/80 px-2 py-0.5 rounded-md border border-emerald-600/60">2. AI History (Voice/Text)</span>
+              <span>→</span>
+              <span className="bg-emerald-800/80 px-2 py-0.5 rounded-md border border-emerald-600/60">3. Document OCR</span>
+              <span>→</span>
+              <span className="bg-emerald-800/80 px-2 py-0.5 rounded-md border border-emerald-600/60">4. Medical Timeline</span>
+              <span>→</span>
+              <span className="bg-emerald-800/80 px-2 py-0.5 rounded-md border border-emerald-600/60">5. AI Clinical Summary</span>
+              <span>→</span>
+              <span className="bg-amber-400/90 text-amber-950 font-black px-2 py-0.5 rounded-md">6. Doctor Console</span>
             </div>
           </div>
         </div>

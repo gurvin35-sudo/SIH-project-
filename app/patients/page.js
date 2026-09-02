@@ -311,6 +311,25 @@ export default function PatientsPage() {
                         </span>
                       </div>
                     )}
+                    {/* Pre-Consultation & OCR Badges */}
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {patient.preConsultationStatus === 'SENT_TO_DOCTOR' && (
+                        <span className="text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-600" />
+                          AI Intake Ready
+                        </span>
+                      )}
+                      {patient.documents && patient.documents.length > 0 && (
+                        <span className="text-[10px] font-bold bg-sky-100 text-sky-900 border border-sky-300 px-1.5 py-0.5 rounded">
+                          📄 {patient.documents.length} OCR Reports
+                        </span>
+                      )}
+                      {patient.redFlags && (
+                        <span className="text-[10px] font-bold bg-rose-100 text-rose-900 border border-rose-300 px-1.5 py-0.5 rounded">
+                          🚨 Emergency Flagged
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Last Diagnosis / Case note */}

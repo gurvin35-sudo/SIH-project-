@@ -117,6 +117,15 @@ export default function Navbar() {
                 })}
               </nav>
 
+              {/* Quick Patient Portal Link */}
+              <Link
+                href="/patient-portal"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition shadow-xs"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <span>Patient Portal</span>
+              </Link>
+
               {/* Quick Take Case CTA */}
               <Link
                 href="/patients"
@@ -172,6 +181,13 @@ export default function Navbar() {
             </div>
           ) : (
             <div className="flex items-center gap-3">
+              <Link
+                href="/patient-portal"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition flex items-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <span>Patient Portal</span>
+              </Link>
               <Link
                 href="/login"
                 className="px-3.5 py-1.5 text-xs font-semibold text-emerald-800 hover:text-emerald-950 transition"

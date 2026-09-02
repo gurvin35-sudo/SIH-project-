@@ -23,22 +23,60 @@ model Doctor {
 }
 
 model Patient {
-  id           String       @id @default(uuid())
-  doctorId     String
-  doctor       Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  abhaId       String?      @unique
-  name         String
-  age          Int
-  gender       String
-  contact      String
-  email        String?
-  address      String?
-  bloodGroup   String?
-  allergies    String?
-  prakritiType String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  cases        CaseRecord[]
+  id                   String            @id @default(uuid())
+  doctorId             String
+  doctor               Doctor            @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  abhaId               String?           @unique
+  name                 String
+  age                  Int
+  gender               String
+  contact              String
+  email                String?
+  address              String?
+  bloodGroup           String?
+  allergies            String?
+  prakritiType         String?
+  
+  // SIH Patient-First Pre-Consultation & AI History Fields
+  preConsultationStatus String           @default("PENDING") // PENDING, IN_PROGRESS, SENT_TO_DOCTOR, REVIEWED
+  language             String            @default("en")      // "en" | "hi"
+  consentGiven         Boolean           @default(false)
+  consentTimestamp     DateTime?
+  chiefComplaint       String?
+  duration             String?
+  hpi                  String?           // History of Present Illness
+  pastMedicalHistory   String?
+  pastSurgicalHistory  String?
+  currentMedicines     String?
+  familyHistory        String?
+  personalHistory      String?           // Lifestyle, Diet, Sleep, Bowel
+  reviewOfSystems      String?
+  ayushAgni            String?           // Samagni, Vishamagni, Tikshnagni, Mandagni
+  ayushKoshta          String?           // Madhyama, Krura, Mridu
+  aiSummary            String?           // Physician-Ready AI Clinical Summary (JSON or structured text)
+  aiInterviewData      String?           // Full JSON transcript of conversational AI interview
+  redFlags             String?           // Detected emergency red-flags JSON/string
+
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  cases                CaseRecord[]
+  documents            MedicalDocument[]
+}
+
+model MedicalDocument {
+  id            String   @id @default(uuid())
+  patientId     String
+  patient       Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  title         String
+  docType       String   // Prescription, Lab Report, Discharge Summary, Imaging, Other
+  docDate       DateTime @default(now())
+  fileUrl       String?
+  ocrText       String?
+  extractedData String?  // JSON string: { diagnosis, medicines: [], labValues: [], procedures: [] }
+  summary       String?
+  uploadedBy    String   @default("patient") // patient | doctor
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model CaseRecord {

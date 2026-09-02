@@ -37,6 +37,100 @@ async function main() {
       bloodGroup: 'B+',
       allergies: 'None reported',
       prakritiType: 'Vata-Pitta dominant',
+      preConsultationStatus: 'SENT_TO_DOCTOR',
+      language: 'en',
+      consentGiven: true,
+      chiefComplaint: 'Bilateral knee joint pain and morning stiffness for 6 months.',
+      duration: '6 months',
+      hpi: 'Pain is worse on climbing stairs and during cold weather; relieved with warm fomentation. Walking tolerance reduced to 15 minutes.',
+      pastMedicalHistory: 'No diabetes or hypertension. Mild hyperacidity 2 years ago.',
+      pastSurgicalHistory: 'None',
+      currentMedicines: 'Zerodol-P SOS, Pan-40 OD',
+      familyHistory: 'Father had severe knee osteoarthritis.',
+      personalHistory: 'Vegetarian, tea twice daily, mild disturbed sleep due to joint stiffness.',
+      reviewOfSystems: 'Appetite erratic, bowel tendency to hard stools.',
+      ayushAgni: 'Vishamagni',
+      ayushKoshta: 'Krura',
+      aiSummary: JSON.stringify({
+        disclaimer: '⚠️ AI-Generated Clinical Draft — Doctor Verification & Confirmation Required.',
+        patientHeader: {
+          name: 'Rajesh Kumar',
+          age: 46,
+          gender: 'Male',
+          contact: '+91 98112 34567',
+          abhaId: '91-4523-8891-2304',
+          bloodGroup: 'B+',
+          language: 'English',
+          consentGiven: true
+        },
+        clinicalHistory: {
+          chiefComplaint: 'Bilateral knee joint pain, crepitus, and morning stiffness for 6 months.',
+          duration: '6 months',
+          hpi: 'Progressive stiffness and dull aching pain in both knees, worse in cold weather. Relieved by warm fomentation.',
+          pastMedicalHistory: 'Mild hyperacidity 2 years ago. No diabetes or hypertension.',
+          currentMedicines: 'Aceclofenac + Paracetamol (SOS), Pantoprazole 40mg',
+          allergies: 'None reported (NKDA)',
+          familyHistory: 'Father had severe knee osteoarthritis.',
+          personalHistory: 'Vegetarian diet, tea 2x daily, sleep occasionally disturbed by pain.',
+          reviewOfSystems: 'Vishamagni (variable appetite), Krura Koshta (hard stool tendency)'
+        },
+        ayushParameters: {
+          prakritiTendency: 'Vata-Pitta dominant',
+          agni: 'Vishamagni (Variable / Vata)',
+          koshta: 'Krura (Hard / Constipated)',
+          lifestyleDiet: 'Vegetarian'
+        },
+        digitizedRecordsSummary: {
+          totalDocumentsUploaded: 2,
+          extractedPriorMedicines: ['Aceclofenac + Paracetamol 100/325mg', 'Pantoprazole 40mg', 'Diacerein + Glucosamine'],
+          extractedLabParameters: ['HbA1c: 6.2% [HIGH]', 'Serum Uric Acid: 7.8 mg/dL [HIGH]', 'ESR: 32 mm/hr [HIGH]']
+        },
+        physicianBrief: 'Rajesh Kumar (46 Yrs, Male) completed AI pre-consultation intake. Chief complaint of bilateral knee pain for 6 months with early morning stiffness. 2 previous medical records digitized via OCR showing elevated inflammatory markers (ESR 32) and uric acid (7.8 mg/dL). Agni is Vishamagni and Koshta is Krura.'
+      }),
+      documents: [
+        {
+          title: 'Dr. Lal PathLabs - Comprehensive Metabolic Panel',
+          docType: 'Lab Report',
+          docDate: new Date('2026-02-18'),
+          ocrText: 'TEST PARAMETERS: Fasting Blood Sugar: 108 mg/dL (HIGH), HbA1c: 6.2% (HIGH), Serum Uric Acid: 7.8 mg/dL (HIGH), ESR: 32 mm/hr (HIGH), CRP: 8.4 mg/L (HIGH).',
+          extractedData: JSON.stringify({
+            docType: 'Lab Report',
+            date: '2026-02-18',
+            laboratory: 'Dr. Lal PathLabs',
+            diagnoses: ['Hyperuricemia', 'Impaired Fasting Glucose', 'Elevated Inflammatory Markers'],
+            labValues: [
+              { parameter: 'Serum Uric Acid', value: '7.8', unit: 'mg/dL', normalRange: '3.4 - 7.0', status: 'HIGH' },
+              { parameter: 'HbA1c', value: '6.2', unit: '%', normalRange: '< 5.7', status: 'HIGH' },
+              { parameter: 'ESR (1st Hour)', value: '32', unit: 'mm/hr', normalRange: '0 - 15', status: 'HIGH' },
+              { parameter: 'C-Reactive Protein (CRP)', value: '8.4', unit: 'mg/L', normalRange: '< 5.0', status: 'HIGH' },
+              { parameter: 'Fasting Blood Sugar', value: '108', unit: 'mg/dL', normalRange: '70 - 99', status: 'HIGH' }
+            ],
+            medicines: [],
+            summary: 'High Uric acid (7.8 mg/dL) and elevated inflammatory markers (ESR 32, CRP 8.4) indicating joint inflammation.'
+          }),
+          summary: 'Lab report indicating joint inflammation with elevated ESR, CRP and Uric acid.'
+        },
+        {
+          title: 'Apollo Hospitals - Orthopedics OPD Prescription',
+          docType: 'Prescription',
+          docDate: new Date('2026-01-10'),
+          ocrText: 'Apollo Hospitals OPD: Bilateral Knee Osteoarthritis (Grade II). Rx: Aceclofenac + Paracetamol 100/325 BD, Pan-40 OD, Diacerein + Glucosamine BD.',
+          extractedData: JSON.stringify({
+            docType: 'Prescription',
+            date: '2026-01-10',
+            doctor: 'Dr. V. K. Mehta (MS Ortho)',
+            diagnoses: ['Bilateral Knee Osteoarthritis (Grade II)', 'Pes Anserine Tendinitis'],
+            medicines: [
+              { name: 'Aceclofenac + Paracetamol', dose: '100mg + 325mg', timing: 'Twice daily after food', duration: '7 days SOS' },
+              { name: 'Pantoprazole (Pan-40)', dose: '40mg', timing: 'Once daily before breakfast', duration: '7 days' },
+              { name: 'Diacerein + Glucosamine', dose: '50mg / 750mg', timing: 'Twice daily', duration: '30 days' }
+            ],
+            labValues: [],
+            summary: 'Prescription for Grade II Knee OA with NSAIDs, gastroprotective agent and cartilage supplements.'
+          }),
+          summary: 'Orthopedic prescription for bilateral knee osteoarthritis.'
+        }
+      ],
       cases: [
         {
           visitDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
@@ -179,18 +273,21 @@ async function main() {
   ];
 
   for (const pData of patientsData) {
-    const { cases, ...patientInfo } = pData;
+    const { cases, documents, ...patientInfo } = pData;
     const patient = await prisma.patient.upsert({
       where: { abhaId: patientInfo.abhaId },
-      update: {},
+      update: {
+        ...patientInfo,
+      },
       create: {
         ...patientInfo,
         doctorId: doctor.id,
       },
     });
 
-    console.log(`✅ Patient created: ${patient.name} (${patient.abhaId})`);
+    console.log(`✅ Patient created/updated: ${patient.name} (${patient.abhaId})`);
 
+    // Seed cases
     for (const cData of cases) {
       await prisma.caseRecord.create({
         data: {
@@ -199,6 +296,19 @@ async function main() {
           doctorId: doctor.id,
         },
       });
+    }
+
+    // Seed medical documents if present
+    if (documents && documents.length > 0) {
+      for (const doc of documents) {
+        await prisma.medicalDocument.create({
+          data: {
+            ...doc,
+            patientId: patient.id,
+          },
+        });
+      }
+      console.log(`   📄 Added ${documents.length} digitized OCR medical records`);
     }
   }
 
