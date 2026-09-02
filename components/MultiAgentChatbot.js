@@ -217,18 +217,18 @@ export default function MultiAgentChatbot() {
             <Sparkles className="w-4 h-4" />
           </div>
           <div className="text-left">
-            <span className="text-xs font-black uppercase tracking-wider block text-amber-300 flex items-center gap-1">
-              <span>🤖 AYUSH AI Multi-Agents</span>
+            <span className="text-xs font-black uppercase tracking-wider block text-amber-300 flex items-center gap-1.5">
+              <span>Ayush AI</span>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
             </span>
             <span className="text-[10px] text-emerald-100 font-medium">
-              4 Domain-Specific Clinical Bots
+              Clinical & Ayurvedic Assistant
             </span>
           </div>
         </button>
       )}
 
-      {/* Expanded Multi-Agent Dialog Box */}
+      {/* Expanded Dialog Box */}
       {isOpen && (
         <div className="w-[92vw] sm:w-[460px] h-[600px] max-h-[85vh] bg-white rounded-3xl shadow-2xl border-2 border-emerald-700/40 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-6">
           {/* Header */}
@@ -239,13 +239,13 @@ export default function MultiAgentChatbot() {
               </div>
               <div>
                 <h3 className="font-extrabold text-sm tracking-tight flex items-center gap-1.5">
-                  <span>AYUSH Multi-Agent Console</span>
+                  <span>Ayush AI</span>
                   <span className="text-[9px] px-2 py-0.5 rounded bg-amber-400 text-amber-950 font-black uppercase">
-                    AI
+                    Clinical
                   </span>
                 </h3>
                 <p className="text-[10px] text-emerald-200">
-                  Strictly restricted to AYUSH, clinical pariksha & herb safety
+                  Ayurvedic clinical guidance, doshas & herbal safety
                 </p>
               </div>
             </div>
