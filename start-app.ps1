@@ -3,7 +3,7 @@ $nodePath = "C:\Users\Mark\AppData\Local\OpenAI\Codex\runtimes\cua_node\950613ca
 $env:PATH = "$nodePath;$env:PATH"
 
 Write-Host "===================================================" -ForegroundColor Green
-Write-Host "    🌿 AyushCase - Ministry of Ayush SIH 2024" -ForegroundColor Green
+Write-Host "    🌿 AyushCase - Ministry of Ayush SIH 2026" -ForegroundColor Green
 Write-Host "===================================================" -ForegroundColor Green
 Write-Host ""
 

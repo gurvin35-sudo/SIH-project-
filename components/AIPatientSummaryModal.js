@@ -631,7 +631,7 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
         <div className="bg-stone-50 border-t border-stone-200 px-6 py-3.5 flex items-center justify-between text-xs text-stone-500 print:hidden">
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Portable ABHA Handover Record • AyushCase SIH 2024</span>
+            <span>Portable ABHA Handover Record • AyushCase SIH 2026</span>
           </div>
           <button
             onClick={onClose}

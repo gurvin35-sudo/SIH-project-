@@ -37,7 +37,7 @@ export default function Navbar() {
       <div className="bg-gradient-to-r from-emerald-900 via-herb to-emerald-950 text-white text-[11px] py-1 px-4 text-center font-medium flex items-center justify-between shadow-inner">
         <div className="hidden sm:flex items-center gap-1.5 opacity-90">
           <Award className="w-3.5 h-3.5 text-amber-300" />
-          <span>Smart India Hackathon 2024 • Ministry of Ayush (Theme: Smart Automation)</span>
+          <span>Smart India Hackathon 2026 • Ministry of Ayush (Theme: Smart Automation)</span>
         </div>
         <div className="flex items-center gap-3 mx-auto sm:mx-0">
           <span className="inline-flex items-center gap-1 text-emerald-200">

@@ -21,7 +21,7 @@ const translations = {
     login: 'Login',
     signup: 'Register Doctor',
     profile: 'Doctor Profile',
-    sihBadge: 'Smart India Hackathon 2024 • Ministry of Ayush',
+    sihBadge: 'Smart India Hackathon 2026 • Ministry of Ayush',
 
     // Dashboard
     totalPatients: 'Total Patients',

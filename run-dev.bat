@@ -3,7 +3,7 @@ title AyushCase - AYUSH Case-Taking Software
 color 0A
 
 echo ===================================================
-echo     🌿 AyushCase - Ministry of Ayush SIH 2024
+echo     🌿 AyushCase - Ministry of Ayush SIH 2026
 echo ===================================================
 echo.
 

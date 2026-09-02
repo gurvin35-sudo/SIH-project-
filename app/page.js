@@ -34,7 +34,7 @@ export default function HomePage() {
         <div className="relative z-10 max-w-3xl space-y-6">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-800/80 border border-emerald-600/50 text-emerald-200 text-xs font-semibold backdrop-blur-sm shadow-inner">
             <Award className="w-4 h-4 text-amber-300" />
-            <span>Smart India Hackathon 2024 • Ministry of Ayush</span>
+            <span>Smart India Hackathon 2026 • Ministry of Ayush</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-white">
