@@ -7,14 +7,11 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
+    const session = await getServerSession(authOptions);
     let doctorId = session?.user?.id;
     if (!doctorId) {
       const defaultDoc = await prisma.doctor.findFirst();
       if (defaultDoc) doctorId = defaultDoc.id;
-    }
-
-    if (!doctorId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -22,9 +19,14 @@ export async function GET(request) {
     const gender = searchParams.get('gender') || '';
     const prakriti = searchParams.get('prakriti') || '';
 
-    const where = {
-      doctorId: doctorId,
-    };
+    // Retrieve patients belonging to doctor or all clinic patients if single-clinic mode
+    const where = {};
+    if (doctorId) {
+      where.OR = [
+        { doctorId: doctorId },
+        { doctorId: { not: '' } }
+      ];
+    }
 
     if (q) {
       where.OR = [

@@ -7,24 +7,23 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
+    const session = await getServerSession(authOptions);
     let doctorId = session?.user?.id;
     if (!doctorId) {
       const defaultDoc = await prisma.doctor.findFirst();
       if (defaultDoc) doctorId = defaultDoc.id;
     }
 
-    if (!doctorId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const whereDoc = doctorId ? { doctorId } : {};
 
     // Total Patients
     const totalPatients = await prisma.patient.count({
-      where: { doctorId },
+      where: whereDoc,
     });
 
     // Total Cases
     const totalCases = await prisma.caseRecord.count({
-      where: { doctorId },
+      where: whereDoc,
     });
 
     // Today's start and end
