@@ -23,14 +23,7 @@ export async function GET(request) {
     const gender = searchParams.get('gender') || '';
     const prakriti = searchParams.get('prakriti') || '';
 
-    // Retrieve patients belonging to doctor or all clinic patients if single-clinic mode
     const where = {};
-    if (doctorId) {
-      where.OR = [
-        { doctorId: doctorId },
-        { doctorId: { not: '' } }
-      ];
-    }
 
     if (q) {
       where.OR = [
