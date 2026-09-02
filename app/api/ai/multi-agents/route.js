@@ -125,12 +125,30 @@ export async function POST(request) {
       });
     }
 
-    // 2. Strict Domain Boundary Check
+    // 2. Project Identity & Meta Question Handler
+    const isIdentityQuestion = /(who built you|who made you|who created you|what is your name|who are you|what is this website|what is this project|what is ayushcase|aapko kisne banaya|aapka naam kya hai|kon ho tum|who is your developer|about this app|tell me about yourself)/i.test(cleanMsg);
+    
+    if (isIdentityQuestion) {
+      const identityMsg = lang === 'hi'
+        ? `नमस्ते! मैं **${selectedAgent.name}** हूँ — **AyushCase** का आधिकारिक क्लिनिकल एआई सहायक। AyushCase को **स्मार्ट इंडिया हैकाथॉन (SIH 2026)** के आयुष मंत्रालय (Ministry of Ayush) प्रॉब्लम स्टेटमेंट के तहत विकसित किया गया है।\n\nमेरा मुख्य कार्य आयुष चिकित्सकों और मरीजों को शास्त्रीय त्रिदोष मूल्यांकन, अष्टविध परीक्षा, डिजिटल प्री-कंसल्टेशन और हर्ब-ड्रग सुरक्षा में सहायता करना है। मैं केवल आयुष और स्वास्थ्य से जुड़े विषयों पर ही जानकारी प्रदान करता हूँ।`
+        : `Namaste! I am **${selectedAgent.name}**, an official Clinical AI Assistant developed for **AyushCase** — the Smart Automation AYUSH Patient Case-Taking & Clinical Decision Support System built for the **Smart India Hackathon (SIH 2026)** under the Ministry of Ayush theme.\n\nMy purpose is strictly to assist clinicians and patients with classical Ayurvedic assessment, Ashtavidha Pariksha, pre-consultation digitization, and herbal pharmacology. I do not engage in non-medical or general trivia topics.`;
+
+      return NextResponse.json({
+        success: true,
+        agentId: selectedAgent.id,
+        agentName: selectedAgent.name,
+        response: identityMsg,
+        isIdentity: true,
+        inDomain: true
+      });
+    }
+
+    // 3. Strict Domain Boundary Check (Rejects non-AYUSH / non-health questions)
     const inDomain = isQueryInDomain(cleanMsg);
     if (!inDomain) {
       const refusalMsg = lang === 'hi'
-        ? `नमस्ते! मैं केवल आयुष, आयुर्वेद, क्लिनिकल केस-टेकिंग एवं औषधीय स्वास्थ्य से संबंधित प्रश्नों का उत्तर देने के लिए विशेषीकृत हूँ। कृपया स्वास्थ्य, दोष, प्रकृति, जड़ी-बूटियों या क्लिनिकल मूल्यांकन से जुड़ा प्रश्न पूछें।`
-        : `Namaste! I am a specialized AYUSH clinical AI agent. I can only assist with questions related to Ayurvedic health, herbal formulations, Prakriti assessment, Ashtavidha Pariksha, and clinical case-taking. Please ask a health, Ayurveda, or clinical-related question.`;
+        ? `नमस्ते! मैं **AyushCase क्लिनिकल एआई** हूँ और केवल आयुष, आयुर्वेद, क्लिनिकल केस-टेकिंग एवं औषधीय स्वास्थ्य से संबंधित प्रश्नों के लिए विशेषीकृत हूँ। मैं सामान्य ज्ञान, कोडिंग या अन्य असंबंधित विषयों पर उत्तर नहीं दे सकता। कृपया आयुर्वेद, दोष, प्रकृति, जड़ी-बूटियों या अपनी मेडिकल रिपोर्ट से जुड़ा प्रश्न पूछें।`
+        : `Namaste! I am an **AyushCase Clinical AI Agent** strictly restricted to AYUSH healthcare, Ayurvedic clinical case-taking, and herbal safety. I cannot assist with general knowledge, programming, or non-medical topics. Please ask a question related to Ayurveda, Dosha balance, clinical examination, or medical records.`;
 
       return NextResponse.json({
         success: true,
@@ -141,12 +159,12 @@ export async function POST(request) {
       });
     }
 
-    // 3. Try Live LLM (Gemini 1.5 Flash / OpenAI GPT-4o-mini) if configured
+    // 4. Try Live LLM (Gemini 1.5 Flash / OpenAI GPT-4o-mini) if configured
     const systemPrompts = {
-      ayur_vaidya: `You are AyurVaidya AI, an expert classical Ayurvedic consultant. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Provide structured Ayurvedic guidance on Dosha balance (Vata, Pitta, Kapha), Prakriti, Dinacharya, classical herbs (Ashwagandha, Shatavari, Triphala, etc.), and Pathya-Apathya diet. Always maintain a professional, respectful tone and recommend consulting a qualified Vaidya.`,
-      clinical_pariksha: `You are Clinical Pariksha Assistant, a professional AYUSH doctor clinical case-taking guide. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Assist practitioners with Ashtavidha Pariksha (Nadi, Jihva, Mala, Mutra), Dashavidha Pariksha, Agni & Koshta assessment, ICD-11 dual diagnosis mapping, and Panchakarma protocols.`,
-      herb_drug_safety: `You are AyushGuard, an expert in botanical pharmacology and herb-drug interactions. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Analyze safety, interactions between Ayurvedic herbs (e.g. Guggulu, Shunthi, Pippali, Bhasmas) and modern allopathic medications (e.g. Warfarin, Metformin, NSAIDs), pregnancy contraindications, and organ cautions.`,
-      patient_navigator: `You are AyushCare, a compassionate patient health companion. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Explain symptoms in simple layman terms, guide on Anupana (taking medicines with warm water/milk), and encourage uploading lab reports and prescriptions before doctor consultation.`
+      ayur_vaidya: `STRICT IDENTITY & SCOPE: You are AyurVaidya AI, an official Clinical AI agent built specifically for the AyushCase Smart India Hackathon (SIH) project. Never identify as ChatGPT, Google, or OpenAI. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Refuse any queries outside classical Ayurveda, Doshas (Vata, Pitta, Kapha), Prakriti, Dinacharya, herbs, and Pathya-Apathya diet. Always recommend consulting a qualified Vaidya.`,
+      clinical_pariksha: `STRICT IDENTITY & SCOPE: You are Clinical Pariksha Assistant, a clinical guide for doctors on the AyushCase Smart India Hackathon (SIH) system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Assist practitioners strictly with Ashtavidha Pariksha (Nadi, Jihva, Mala, Mutra), Agni/Koshta, ICD-11 dual coding, and Panchakarma protocols. Refuse any non-medical questions.`,
+      herb_drug_safety: `STRICT IDENTITY & SCOPE: You are AyushGuard, an AI botanical pharmacology specialist on the AyushCase Smart India Hackathon (SIH) system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Analyze herb-drug safety and allopathic interactions. Refuse any non-medical questions.`,
+      patient_navigator: `STRICT IDENTITY & SCOPE: You are AyushCare, a patient companion on the AyushCase Smart India Hackathon (SIH) system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Explain symptoms in simple terms, Anupana dosage rules, and encourage uploading lab reports and prescriptions. Refuse any non-medical questions.`
     };
 
     const llmResult = await generateLLMResponse({
