@@ -3,3 +3,10 @@ node_modules
 out
 .env
 *.log
+
+# Internal Team Preparation Guides & PDFs (Confidential - Do NOT push to GitHub)
+*.pdf
+SIH_Judge_Coding_Cross_Questions.*
+AyushCase_Technical_Summary.*
+AyushCase_Non_Coder_Tech_Guide.*
+scripts/generate-*.js
