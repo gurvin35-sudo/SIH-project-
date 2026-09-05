@@ -15,7 +15,8 @@ import {
   X,
   Globe,
   Award,
-  Sparkles
+  Sparkles,
+  Bot
 } from 'lucide-react';
 import { useLanguage } from './LanguageContext';
 
@@ -117,6 +118,21 @@ export default function Navbar() {
                 })}
               </nav>
 
+              {/* Ayush AI Chatbot Launcher */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('open-ayush-chatbot'));
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100/90 text-emerald-950 border border-emerald-300 hover:bg-emerald-200 transition shadow-xs"
+                title="Open Ayush AI Clinical & Dosha Assistant"
+              >
+                <Bot className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Ayush AI</span>
+              </button>
+
               {/* Quick Patient Portal Link */}
               <Link
                 href="/patient-portal"
@@ -180,7 +196,21 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
+              {/* Ayush AI Chatbot Launcher for guests */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('open-ayush-chatbot'));
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100/90 text-emerald-950 border border-emerald-300 hover:bg-emerald-200 transition shadow-xs"
+              >
+                <Bot className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Ayush AI</span>
+              </button>
+
               <Link
                 href="/patient-portal"
                 className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition flex items-center gap-1.5"
@@ -204,55 +234,99 @@ export default function Navbar() {
           )}
 
           {/* Mobile Menu Toggle */}
-          {session && (
-            <div className="md:hidden flex items-center gap-2">
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-lg text-stone-600 hover:bg-stone-100"
-              >
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
-            </div>
-          )}
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg text-stone-600 hover:bg-stone-100"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Mobile Drawer */}
-      {mobileMenuOpen && session && (
+      {mobileMenuOpen && (
         <div className="md:hidden bg-white border-b border-stone-200 px-4 pt-2 pb-4 space-y-2">
-          <div className="p-3 bg-stone-50 rounded-xl mb-3">
-            <div className="text-xs font-bold text-stone-900">{session.user?.name}</div>
-            <div className="text-[11px] text-emerald-700">{session.user?.clinicName || 'Ayurveda Clinic'}</div>
-          </div>
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-stone-700 hover:bg-emerald-50 hover:text-emerald-800"
-              >
-                <Icon className="w-4 h-4" />
-                <span>{link.label}</span>
-              </Link>
-            );
-          })}
-          <Link
-            href="/patients"
-            onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-600 text-white"
-          >
-            <FilePlus2 className="w-4 h-4" />
-            <span>{t('newCase')}</span>
-          </Link>
+          {session && (
+            <div className="p-3 bg-stone-50 rounded-xl mb-3">
+              <div className="text-xs font-bold text-stone-900">{session.user?.name}</div>
+              <div className="text-[11px] text-emerald-700">{session.user?.clinicName || 'Ayurveda Clinic'}</div>
+            </div>
+          )}
+
           <button
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50"
+            type="button"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('open-ayush-chatbot'));
+              }
+            }}
+            className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-300"
           >
-            <LogOut className="w-4 h-4" />
-            <span>{t('logout')}</span>
+            <Bot className="w-4 h-4 text-emerald-700" />
+            <span>Ayush AI Assistant</span>
           </button>
+
+          {session ? (
+            <>
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-stone-700 hover:bg-emerald-50 hover:text-emerald-800"
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{link.label}</span>
+                  </Link>
+                );
+              })}
+              <Link
+                href="/patients"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-600 text-white"
+              >
+                <FilePlus2 className="w-4 h-4" />
+                <span>{t('newCase')}</span>
+              </Link>
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="w-full text-left flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>{t('logout')}</span>
+              </button>
+            </>
+          ) : (
+            <div className="flex flex-col gap-2 pt-2 border-t border-stone-100">
+              <Link
+                href="/patient-portal"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300"
+              >
+                <Sparkles className="w-4 h-4 text-amber-600" />
+                <span>Patient Portal</span>
+              </Link>
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-stone-700 hover:bg-stone-50"
+              >
+                <span>{t('login')}</span>
+              </Link>
+              <Link
+                href="/signup"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-600 text-white"
+              >
+                <span>{t('signup')}</span>
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>

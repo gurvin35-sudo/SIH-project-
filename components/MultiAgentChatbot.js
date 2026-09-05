@@ -115,6 +115,23 @@ export default function MultiAgentChatbot() {
   }, [chatLang]);
 
   useEffect(() => {
+    const handleOpen = (e) => {
+      setIsOpen(true);
+      if (e.detail?.agentId) {
+        setActiveAgentId(e.detail.agentId);
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('open-ayush-chatbot', handleOpen);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('open-ayush-chatbot', handleOpen);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, activeAgentId, loading]);
 
