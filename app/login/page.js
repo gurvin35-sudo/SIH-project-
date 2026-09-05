@@ -12,7 +12,8 @@ import {
   AlertCircle,
   Stethoscope,
   User,
-  ShieldCheck
+  ShieldCheck,
+  Sparkles
 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 
