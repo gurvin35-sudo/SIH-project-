@@ -79,17 +79,20 @@ const AYUSH_KEYWORDS = [
   'अभ्यंग', 'स्वेदन', 'बस्ति', 'पथ्य', 'अपथ्य', 'आहार', 'विहार', 'दिनचर्या', 'दर्द', 'गठिया', 'पाचन', 'कब्ज', 'दवा'
 ];
 
+// Broad Domain Filter: Rejects only clear non-medical / non-health spam
 function isQueryInDomain(query) {
-  if (!query) return false;
+  if (!query || !query.trim()) return false;
   const lower = query.toLowerCase();
+
+  // Explicit non-medical refusal patterns (programming, crypto, movies, sports scores, hacking)
+  const nonMedicalSpam = /(write code|python script|javascript function|write java|c\+\+ program|crypto price|bitcoin|stock market|who is the prime minister|who is the president|movie review|ipl match score|cricket score|hack wifi|hack instagram|hack facebook)/i;
   
-  // Explicit non-domain rejection keywords (code, programming, stocks, movies, politics)
-  if (/(write code|python script|javascript function|crypto price|stock market|who is the president|movie review|ipl match score|bitcoin|hack facebook)/i.test(lower)) {
+  if (nonMedicalSpam.test(lower)) {
     return false;
   }
 
-  // Check if any AYUSH or health keyword is present
-  return AYUSH_KEYWORDS.some(kw => lower.includes(kw.toLowerCase()));
+  // Allow all health, symptoms, clinical conditions, diseases, herbs, diets, and lifestyle questions
+  return true;
 }
 
 export async function GET(request) {
@@ -130,8 +133,8 @@ export async function POST(request) {
     
     if (isIdentityQuestion) {
       const identityMsg = lang === 'hi'
-        ? `नमस्ते! मैं **${selectedAgent.name}** हूँ — **AyushCase** का आधिकारिक क्लिनिकल एआई सहायक। AyushCase को **स्मार्ट इंडिया हैकाथॉन (SIH 2026)** के आयुष मंत्रालय (Ministry of Ayush) प्रॉब्लम स्टेटमेंट के तहत विकसित किया गया है।\n\nमेरा मुख्य कार्य आयुष चिकित्सकों और मरीजों को शास्त्रीय त्रिदोष मूल्यांकन, अष्टविध परीक्षा, डिजिटल प्री-कंसल्टेशन और हर्ब-ड्रग सुरक्षा में सहायता करना है। मैं केवल आयुष और स्वास्थ्य से जुड़े विषयों पर ही जानकारी प्रदान करता हूँ।`
-        : `Namaste! I am **${selectedAgent.name}**, an official Clinical AI Assistant developed for **AyushCase** — the Smart Automation AYUSH Patient Case-Taking & Clinical Decision Support System built for the **Smart India Hackathon (SIH 2026)** under the Ministry of Ayush theme.\n\nMy purpose is strictly to assist clinicians and patients with classical Ayurvedic assessment, Ashtavidha Pariksha, pre-consultation digitization, and herbal pharmacology. I do not engage in non-medical or general trivia topics.`;
+        ? `नमस्ते! मैं **${selectedAgent.name}** हूँ — **AyushCase** का आधिकारिक क्लिनिकल एआई सहायक। AyushCase को **स्मार्ट इंडिया हैकाथॉन (SIH 2026)** के आयुष मंत्रालय (Ministry of Ayush) प्रॉब्लम स्टेटमेंट के तहत विकसित किया गया है।\n\nमेरा मुख्य कार्य आयुष चिकित्सकों और मरीजों को शास्त्रीय त्रिदोष मूल्यांकन, अष्टविध परीक्षा, डिजिटल प्री-कंसल्टेशन और हर्ब-ड्रग सुरक्षा में सहायता करना है।`
+        : `Namaste! I am **${selectedAgent.name}**, an official Clinical AI Assistant developed for **AyushCase** — the Smart Automation AYUSH Patient Case-Taking & Clinical Decision Support System built for the **Smart India Hackathon (SIH 2026)** under the Ministry of Ayush theme.\n\nMy purpose is to assist clinicians and patients with classical Ayurvedic assessment, Ashtavidha Pariksha, pre-consultation digitization, and herbal pharmacology.`;
 
       return NextResponse.json({
         success: true,
@@ -143,12 +146,12 @@ export async function POST(request) {
       });
     }
 
-    // 3. Strict Domain Boundary Check (Rejects non-AYUSH / non-health questions)
+    // 3. Strict Domain Boundary Check (Rejects non-medical spam)
     const inDomain = isQueryInDomain(cleanMsg);
     if (!inDomain) {
       const refusalMsg = lang === 'hi'
-        ? `नमस्ते! मैं **AyushCase क्लिनिकल एआई** हूँ और केवल आयुष, आयुर्वेद, क्लिनिकल केस-टेकिंग एवं औषधीय स्वास्थ्य से संबंधित प्रश्नों के लिए विशेषीकृत हूँ। मैं सामान्य ज्ञान, कोडिंग या अन्य असंबंधित विषयों पर उत्तर नहीं दे सकता। कृपया आयुर्वेद, दोष, प्रकृति, जड़ी-बूटियों या अपनी मेडिकल रिपोर्ट से जुड़ा प्रश्न पूछें।`
-        : `Namaste! I am an **AyushCase Clinical AI Agent** strictly restricted to AYUSH healthcare, Ayurvedic clinical case-taking, and herbal safety. I cannot assist with general knowledge, programming, or non-medical topics. Please ask a question related to Ayurveda, Dosha balance, clinical examination, or medical records.`;
+        ? `नमस्ते! मैं **AyushCase क्लिनिकल एआई** हूँ और केवल आयुष, आयुर्वेद, स्वास्थ्य एवं क्लिनिकल परामर्श से संबंधित प्रश्नों के लिए विशेषीकृत हूँ। कृपया स्वास्थ्य, रोग, लक्षण, त्रिदोष, आहार अथवा औषधियों से जुड़ा प्रश्न पूछें।`
+        : `Namaste! I am an **AyushCase Clinical AI Agent** specialized in AYUSH healthcare, clinical assessment, and herbal safety. I cannot assist with non-medical topics like programming or general trivia. Please ask a question related to symptoms, conditions (e.g. diabetes, arthritis, acidity), Dosha balance, or medications.`;
 
       return NextResponse.json({
         success: true,
@@ -159,12 +162,12 @@ export async function POST(request) {
       });
     }
 
-    // 4. Try Live LLM (Gemini 1.5 Flash / OpenAI GPT-4o-mini) if configured
+    // 4. Try Live LLM (Groq Llama 3.3 70B / Gemini 1.5 Flash / OpenAI GPT-4o-mini)
     const systemPrompts = {
-      ayur_vaidya: `STRICT IDENTITY & SCOPE: You are AyurVaidya AI, an official Clinical AI agent built specifically for the AyushCase Smart India Hackathon (SIH) project. Never identify as ChatGPT, Google, or OpenAI. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Refuse any queries outside classical Ayurveda, Doshas (Vata, Pitta, Kapha), Prakriti, Dinacharya, herbs, and Pathya-Apathya diet. Always recommend consulting a qualified Vaidya.`,
-      clinical_pariksha: `STRICT IDENTITY & SCOPE: You are Clinical Pariksha Assistant, a clinical guide for doctors on the AyushCase Smart India Hackathon (SIH) system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Assist practitioners strictly with Ashtavidha Pariksha (Nadi, Jihva, Mala, Mutra), Agni/Koshta, ICD-11 dual coding, and Panchakarma protocols. Refuse any non-medical questions.`,
-      herb_drug_safety: `STRICT IDENTITY & SCOPE: You are AyushGuard, an AI botanical pharmacology specialist on the AyushCase Smart India Hackathon (SIH) system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Analyze herb-drug safety and allopathic interactions. Refuse any non-medical questions.`,
-      patient_navigator: `STRICT IDENTITY & SCOPE: You are AyushCare, a patient companion on the AyushCase Smart India Hackathon (SIH) system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Explain symptoms in simple terms, Anupana dosage rules, and encourage uploading lab reports and prescriptions. Refuse any non-medical questions.`
+      ayur_vaidya: `You are AyurVaidya AI, an expert classical Ayurvedic clinician on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. For any health condition or question asked (such as Diabetes/Madhumeha, Hypertension, Arthritis, Acid Reflux, Weight, Digestion, etc.), provide: 1. Ayurvedic root cause (Dosha vitiation: Vata/Pitta/Kapha, Agni status, Ama), 2. Pathya diet (Foods to eat) & Apathya (Foods to avoid), 3. Recommended classical Ayurvedic herbs/formulations with Anupana (adjuvant), 4. Lifestyle (Dinacharya/Yoga) advice. Always provide clear, professional, markdown-formatted answers.`,
+      clinical_pariksha: `You are Clinical Pariksha Assistant, a clinical guide for doctors on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Assist practitioners with Ashtavidha Pariksha (Nadi pulse, Jihva tongue, Mala, Mutra), Agni & Koshta assessment, ICD-11 dual mapping for the condition, and Panchakarma protocols. Format answers professionally with bullet points.`,
+      herb_drug_safety: `You are AyushGuard, an AI botanical pharmacology specialist on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Analyze herb-drug interactions, allopathic co-administration safety (e.g. Metformin with Jamun/Shilajit, NSAIDs with Guggulu, Blood thinners with Garlic/Ginkgo), organ precautions, and pregnancy safety.`,
+      patient_navigator: `You are AyushCare, a patient companion on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Explain medical conditions, symptom severity, how to take Ayurvedic medicines with warm water/milk (Anupana rules), and pre-consultation guidance in simple, comforting terms.`
     };
 
     const llmResult = await generateLLMResponse({
@@ -184,83 +187,111 @@ export async function POST(request) {
       });
     }
 
-    // 4. Built-in Classical AYUSH Knowledge Fallback Engine
+    // 5. Comprehensive Classical AYUSH Fallback Engine (Offline / Zero-API Fallback)
     let responseText = '';
     const lower = cleanMsg.toLowerCase();
 
-    if (agentId === 'ayur_vaidya') {
-      // Classical Ayurvedic Consultant Persona
-      if (lower.includes('pitta') || lower.includes('acid') || lower.includes('burning') || lower.includes('पित्त')) {
+    // Diabetes / Sugar / Madhumeha / Prameha
+    if (lower.includes('diabet') || lower.includes('sugar') || lower.includes('मधुमेह') || lower.includes('शुगर') || lower.includes('prameha')) {
+      if (agentId === 'ayur_vaidya') {
         responseText = lang === 'hi'
-          ? `🌿 **पित्त दोष शमन एवं आहार मार्गदर्शन:**
-1. **पथ्य आहार (अनुकूल):** मधुर (मीठे), तिक्त (कड़वे) एवं कषाय (कसैले) रस प्रधान भोजन। गाय का शुद्ध घी, नारियल पानी, मुनक्का, खीरा, सौंफ का पानी, आंवला एवं धनिया युक्त शीतल जल।
-2. **अपथ्य (वर्ज्य):** तीखे (कटु), खट्टे (अम्ल), अत्यधिक नमकीन एवं तली-भुनी चीजें। लाल मिर्च, लहसुन, सिरका, शराब और अधिक चाय/कॉफी से बचें।
-3. **औषधीय जड़ी-बूटियां:** कामदुधा रस, अविपत्तिकर चूर्ण (3-5g भोजन पूर्व गर्म पानी/दूध से), शतावरी एवं गिलोय स्वरस।
-4. **विहार (जीवनशैली):** अत्यधिक धूप व तनाव से बचें; चंद्रमा की चांदनी में टहलना (शीतल विहार) एवं शीतली प्राणायाम करें।`
-          : `🌿 **Ayurvedic Pitta Pacification Protocol:**
-1. **Pathya (Recommended Diet):** Sweet, bitter, and astringent tastes. Pure cow's ghee (1 tsp per meal), tender coconut water, soaked black raisins (Munakka), cucumber, fennel infusion, and fresh pomegranate.
-2. **Apathya (Foods to Avoid):** Excessive pungent (spicy), sour (fermented), salty foods. Avoid deep-fried items, red chillies, raw garlic, vinegar, and excessive caffeine.
-3. **Classical Herbal Formulations:** Avipattikar Churna (3g before meals with lukewarm water), Kamadudha Rasa, Shatavari Churna, and Guduchi (Tinospora cordifolia) for balancing digestive fire (Pitta-Samagni).
-4. **Lifestyle (Vihara):** Avoid mid-day sun exposure, practice Sheetali / Sheetkari Pranayama, and maintain regular meal intervals.`;
-      } else if (lower.includes('ashwagandha') || lower.includes('अश्वगंधा')) {
+          ? `🌿 **मधुमेह (Diabetes / Madhumeha) — आयुर्वेदिक दृष्टिकोण एवं आहार नियम:**
+1. **दोष प्रभाव:** कफ एवं मेद धातु की विकृति के कारण वात प्रकोप (कफज से वातज प्रमेह)।
+2. **पथ्य आहार (क्या खाएं):** जौ (Yava), करेला, जामुन, मेथी दाना का पानी, पुराना चावल, आंवला, दालचीनी एवं सहजन (Moringa)।
+3. **अपथ्य (क्या न खाएं):** चीनी, गुड़, मिठाई, मैदा, नया चावल, मीठे फल (चीकू, आम), दही का रात में सेवन, एवं दिवास्वप्न (दिन में सोना)।
+4. **शास्त्रीय औषधियां:** 
+   - **मेषशृंगी (Gymnema Sylvestre / गुड़मार)** चूर्ण (3g भोजन पूर्व)।
+   - **निशा-आमलकी चूर्ण** (हल्दी + आंवला) 3-5g गुनगुने पानी से।
+   - **वसंत कुसुमाकर रस** अथवा **शिलाजत्वादि वटी** (1-1 वटी)।
+5. **दिनचर्या:** नित्य 45 मिनट तेज चाल में टहलना, कपालभाति एवं मंडूकासन का अभ्यास।`
+          : `🌿 **Ayurvedic Management for Diabetes Mellitus (Madhumeha):**
+1. **Etiopathogenesis (Samprapti):** Characterized as *Kaphaja Prameha* progressing to *Dhatukshaya* and Vata aggravation affecting the Medas (adipose) and Mutra (urinary) channels.
+2. **Pathya (Recommended Diet):** Barley (Yava), bitter gourd (Karela), Jamun seed powder, Fenugreek (Methi) water, Cinnamon infusion, Amla, and drumstick leaves.
+3. **Apathya (Foods to Avoid):** Refined sugars, jaggery, bakery items, heavy unctuous milk products, late dinners, and day-sleeping (*Divasvapna*).
+4. **Classical Herbal Formulations:**
+   - **Nisha-Amalaki Churna:** (Turmeric + Indian Gooseberry) 3g twice daily before meals with lukewarm water.
+   - **Meshashringi (Gymnema Sylvestre / 'Sugar Destroyer'):** 500mg extract or 3g churna.
+   - **Shilajitvadi Vati / Chandraprabha Vati:** 1-2 tablets twice daily for renal & metabolic support.
+5. **Lifestyle & Yoga:** Daily brisk walking (minimum 45 min), Mandukasana, Paschimottanasana, and Kapalabhati Pranayama.`;
+      } else if (agentId === 'clinical_pariksha') {
         responseText = lang === 'hi'
-          ? `🌿 **अश्वगंधा (Withania somnifera) — शास्त्रीय अवलोकन:**
-* **रस/गुण/वीर्य/विपाक:** तिक्त-कषाय रस, स्निग्ध-लघु गुण, उष्ण वीर्य, मधुर विपाक।
-* **दोष प्रभाव:** वात एवं कफ दोष का मुख्य रूप से शमन करता है (बल्य व रसायन)।
-* **मुख्य लाभ:** स्नायु दुर्बलता, अनिद्रा, तनाव (Cortisol regulation), जोड़ों में वात वेदना, एवं धातुओं के पोषण में अत्यंत गुणकारी।
-* **सेवन विधि (अनुपान):** 3-5 ग्राम अश्वगंधा चूर्ण अथवा 1-2 वटी रात्रि में गुनगुने दूध एवं 1/2 चम्मच गाय के घी के साथ।
-* **सावधानी:** उच्च पित्त प्रकोप (अत्यधिक गर्मी, अल्सर) या तीव्र ज्वर (Active fever / Ama state) में बिना वैद्य परामर्श न लें।`
-          : `🌿 **Ashwagandha (Withania somnifera) — Clinical Profile:**
-* **Pharmacodynamics (Ayurvedic):** Tikta-Kashaya (Bitter/Astringent) taste, Snigdha-Laghu (Unctuous/Light), Ushna (Heating) potency, Madhura Vipaka.
-* **Dosha Karma:** Highly pacifies Vata and Kapha; builds Ojas and Medha (cognitive stamina).
-* **Clinical Indications:** Neuro-muscular debility, chronic fatigue, sleep disturbances, musculoskeletal stiffness (Sandhigatavata), and adaptogenic stress support.
-* **Dosage & Anupana:** 3-5g Churna or 500mg extract twice daily with warm boiled milk (Ksheera) or warm water at bedtime.
-* **Precautions:** Exercise caution in acute Pitta inflammation, hyperthyroidism, and active fever (Ama state).`;
+          ? `📋 **क्लिनिकल परीक्षा — मधुमेह (Diabetes Case Evaluation):**
+1. **अष्टविध परीक्षा:** नाड़ी में कफ-वात संसर्ग (मंद-कठिन गति), जिह्वा पर साम कफ लेप, मूत्र में आविलता (टर्बिडिटी) एवं पिपीलिकाभिगमन (चींटियों का आकर्षित होना)।
+2. **अग्नि/कोष्ठ:** मंदाग्नि अथवा विषमाग्नि के साथ मेदोदुष्टि का मूल्यांकन करें।
+3. **ICD-11 Dual Mapping:** Madhumeha ➔ **ICD-11: 5A11 (Type 2 Diabetes Mellitus)**.
+4. **अनुशंसित पंचकर्म:** उद्वर्तन (हर्बल पाउडर मसाज) एवं दीपन-पाचन हेतु त्रिकटु कल्प।`
+          : `📋 **Clinical Case-Taking Protocol — Diabetes (Madhumeha):**
+1. **Ashtavidha Pariksha Findings:** Kapha-Vata dominant sluggish pulse (Manda-Gati), Saama Jihva (thick white coat indicating metabolic endotoxins/Ama), polyuria (*Prabhuta Mutrata*).
+2. **Agni Profile:** *Mandagni* (sluggish metabolism) leading to *Medovaha Srotodushti*.
+3. **ICD-11 Dual Diagnostic Mapping:** *Madhumeha / Kaphaja Prameha* ➔ **ICD-11: 5A11 Type 2 Diabetes Mellitus**.
+4. **Panchakarma Protocol:** *Udvartana* (dry herbal powder scrub using Triphala/Kulattha) to reduce subcutaneous adipose tissue, followed by *Virechana*.`;
+      } else if (agentId === 'herb_drug_safety') {
+        responseText = lang === 'hi'
+          ? `🔬 **आयुषगार्ड — मधुमेह हर्ब-ड्रग सुरक्षा (Safety Warnings):**
+1. **Metformin / Glimepiride के साथ:** जामुन बीज, गुड़मार और शिलाजीत रक्त शर्करा को तेजी से कम करते हैं। अतः एलोपैथी के साथ लेते समय ब्लड शुगर नियमित मापें (हाइपोग्लाइसीमिया / Low Sugar का ध्यान रखें)।
+2. **किडनी सुरक्षा:** लंबे समय से मधुमेह रोगियों में बिना डॉक्टर सलाह के धातु भस्म न दें; केवल पुनर्नवा व चंद्रप्रभा वटी जैसे रीनो-प्रोटेक्टिव योग सुरक्षित हैं।`
+          : `🔬 **AyushGuard Herb-Drug Interaction & Safety (Diabetes):**
+1. **Synergy with Modern Antidiabetics (Metformin, Glimepiride, SGLT2i):** Potent hypoglycemic herbs like *Gymnema (Meshashringi)*, *Karela*, and *Jamun* amplify insulin sensitivity. Patients must monitor fasting/PP glucose to avoid sudden hypoglycemia.
+2. **Renal Protection in Diabetic Nephropathy:** Avoid high-potency metallic Bhasmas without certified purification. Favor gentle renoprotective herbs like *Punarnava (Boerhavia diffusa)* and *Gokshura*.`;
       } else {
         responseText = lang === 'hi'
-          ? `🌿 **आयुर्वेदिक निदान एवं स्वास्थ्य मार्गदर्शन:**
-आयुर्वेद के अनुसार स्वास्थ्य वात, पित्त और कफ के संतुलन (समदोष) और जाठराग्नि की सम्यावस्था पर निर्भर करता है। आपके द्वारा पूछे गए विषय पर शास्त्रीय सिद्धांत यह है कि रोग का मूल कारण 'आम' (विषाक्त अपक्व रस) और दोष वैषम्य है। 
-संतुलन हेतु नित्य दीपन-पाचन (सोंठ, जीरा, धनिया जल), समय पर ऋतु अनुकूल आहार और नियमित प्राणायाम का अभ्यास करें। विशिष्ट औषधियों के लिए अपनी प्रकृति अनुसार परामर्श लें।`
-          : `🌿 **Ayurvedic Health & Constitution Guidance:**
-Classical Ayurveda states that optimal health (Swastha) is achieved when Doshas (Vata-Pitta-Kapha), Agni (digestive fire), and Dhatus (tissues) are in dynamic equilibrium. 
-For your inquiry, classical principles recommend identifying your baseline Prakriti, clearing metabolic residue (Ama) through Deepana-Pachana herbs (Shunthi, Jeeraka, Dhanyaka), and adhering to circadian Dinacharya routines. Always confirm personalized herbal dosages with a certified AYUSH Vaidya.`;
+          ? `🩺 **आयुषकेयर — मधुमेह के लिए दैनिक सावधानियां:**
+1. **दवाई लेने का समय:** निशा-आमलकी अथवा जामुन चूर्ण हमेशा भोजन से 20 मिनट पहले गुनगुने पानी से लें।
+2. **घरेलू उपाय:** रात में 1 चम्मच मेथी दाना पानी में भिगोएं और सुबह खाली पेट पानी पिएं व दाने चबाएं।
+3. **डॉक्टर से मिलने से पहले:** अपनी हालिया HbA1c और Fasting Blood Sugar रिपोर्ट पोर्टल पर अपलोड करें।`
+          : `🩺 **AyushCare Patient Companion — Diabetes Care Tips:**
+1. **Anupana & Timing:** Take your herbal formulations (like Triphala or Nisha-Amalaki) with lukewarm water 20-30 minutes before main meals.
+2. **Simple Home Remedy:** Soak 1 teaspoon of fenugreek seeds (Methi) in a glass of water overnight; drink the water and chew the seeds in the morning.
+3. **Pre-Consultation Tip:** Please upload your latest **HbA1c**, Fasting, and Post-Prandial blood sugar reports to your patient portal for your doctor's review!`;
       }
-    } else if (agentId === 'clinical_pariksha') {
-      // Clinical Pariksha Doctor Assistant Persona
+    } else if (lower.includes('pitta') || lower.includes('acid') || lower.includes('burning') || lower.includes('gerd') || lower.includes('पित्त') || lower.includes('acidity')) {
       responseText = lang === 'hi'
-        ? `📋 **क्लिनिकल परीक्षा एवं केस-टेकिंग विश्लेषण:**
-1. **अष्टविध परीक्षा निष्कर्ष:** नाड़ी (गति, वेग, दोष प्रधानता), जिह्वा (साम/निराम स्थिति), मल एवं मूत्र परीक्षा।
-2. **अग्नि एवं कोष्ठ संबंध:** विषमाग्नि वाले वात रोगियों में क्रूर कोष्ठ की प्रवृत्ति होती है, जिसे ठीक करने हेतु एरंड तैल अथवा त्रिफला चूर्ण विरेचन अनुशंसित है।
-3. **दोहरा निदान (Dual Coding):** संधिगतवात को आधुनिक ICD-11 कोड FA00 (Osteoarthritis) से मैप करें।
-4. **पंचकर्म सलाह:** स्थानिक जानु बस्ति (महानारायण तैल) 7 दिवस एवं पत्रपिंड स्वेद से शोथ एवं शूल में तुरंत लाभ होता है।`
-        : `📋 **Clinical Case-Taking & Ashtavidha Pariksha Protocol:**
-1. **Pulse (Nadi Pariksha):** Evaluate Sarpa Gati (Vata - fast, tortuous), Manduka Gati (Pitta - leaping, rapid), or Hamsa Gati (Kapha - slow, steady).
-2. **Tongue (Jihva Pariksha):** Check for Saama Jihva (white/thick coating indicative of metabolic endotoxins) vs Niraama (clean pinkish surface).
-3. **Agni & Koshta Alignment:** Vishamagni with Krura Koshta indicates Vata pathology requiring Snigdha Deepana herbs (Erandasneha, Hingwashtaka, Triphala Churna at bedtime).
-4. **Dual Diagnostic Mapping:** Map classical Rogas alongside ICD-11 entities (e.g. *Sandhigatavata* → *FA00 Knee Osteoarthritis*, *Amavata* → *FA20 Rheumatoid Arthritis*).`;
-    } else if (agentId === 'herb_drug_safety') {
-      // AyushGuard Herb-Drug Interaction Persona
+        ? `🌿 **अम्लपित्त एवं पित्त दोष शमन मार्गदर्शन:**
+1. **पथ्य आहार:** शुद्ध गाय का घी, नारियल पानी, मुनक्का, खीरा, सौंफ का पानी, आंवला, ठंडा दूध एवं जौ का सत्तू।
+2. **अपथ्य:** तीखा, खट्टा, सिरका, लाल मिर्च, चाय/कॉफी और खाली पेट देर तक रहना।
+3. **औषधियां:** अविपत्तिकर चूर्ण (3g भोजन पूर्व), कामदुधा रस (1 वटी), सूतशेखर रस एवं शतावरी चूर्ण।
+4. **विहार:** शीतली प्राणायाम करें और रात को समय पर सोएं।`
+        : `🌿 **Ayurvedic Protocol for Acidity & High Pitta (Amlapitta):**
+1. **Pathya (Recommended Diet):** Pure cow's ghee (1 tsp per meal), tender coconut water, soaked black raisins (Munakka), cucumber, fennel infusion, and fresh pomegranate.
+2. **Apathya (Foods to Avoid):** Excessive spicy, sour fermented foods, deep-fried items, red chillies, raw garlic, and empty-stomach caffeine.
+3. **Classical Herbal Formulations:** Avipattikar Churna (3g before meals with lukewarm water), Kamadudha Rasa, Shatavari Churna, and Sutashekhara Rasa.
+4. **Lifestyle (Vihara):** Practice Sheetali Pranayama, avoid midday heat exposure, and maintain regular meal intervals.`;
+    } else if (lower.includes('joint') || lower.includes('pain') || lower.includes('arthritis') || lower.includes('घुटने') || lower.includes('दर्द') || lower.includes('वात') || lower.includes('vata')) {
       responseText = lang === 'hi'
-        ? `🔬 **आयुषगार्ड हर्ब-ड्रग सुरक्षा एवं इंटरेक्शन विश्लेषण:**
-1. **गठिया औषधियां एवं एलोपैथिक NSAIDs:** यदि रोगी पहले से Aceclofenac/Paracetamol ले रहा है, तो गुग्गुलु कल्प (योगराज/त्रयोदशांग) सुरक्षित रूप से शुरू किया जा सकता है, परंतु NSAID की खुराक धीरे-धीरे डॉक्टर की देखरेख में कम करें।
-2. **रक्त पतला करने वाली दवाएं (Anticoagulants):** लहसुन, गुग्गुलु एवं अत्यधिक अदरक (शुंठी) रक्त के थक्के जमने के समय को प्रभावित कर सकते हैं; Warfarin/Aspirin के साथ इनका अत्यधिक सेवन निगरानी में करें।
-3. **मधुमेह दवाएं (Metformin/Insulin):** जामुन बीज चूर्ण, करेला एवं शिलाजीत रक्त शर्करा को तेजी से कम कर सकते हैं, अतः हाइपोग्लाइसीमिया (लो शुगर) की नियमित जांच करें।`
-        : `🔬 **AyushGuard Herb-Drug Safety & Interaction Brief:**
-1. **Guggulu & NSAIDs / Analgesics:** Yograj or Kaishore Guggulu can be co-prescribed with modern NSAIDs, but gastroprotective support (like Pan-40 or Shatavari) is advised to prevent gastric mucosal irritation.
-2. **Anticoagulants & Antiplatelets (Warfarin, Aspirin):** Herbs like high-dose Garlic (Lashuna), Guggulu, and concentrated Ginger have mild anti-platelet activity. Monitor INR levels if combined.
-3. **Antidiabetic Agents (Metformin / Glimepiride):** Synergistic hypoglycemic herbs (Meshashringi/Gymnema, Karela, Jamun, Shilajit) enhance insulin sensitivity; blood glucose should be monitored to prevent hypoglycemia.
-4. **Pregnancy & High Pitta Contraindications:** Avoid cytotoxic Tikshna Bhasmas and strong purgatives (Eranda Taila, Jayapala) during gestation and active bleeding.`;
+        ? `🌿 **संधिवात एवं वात शमन (Joint Pain & Arthritis Protocol):**
+1. **पथ्य आहार:** गर्म ताजा भोजन, गाय का घी, तिल का तेल, लहसुन, अदरक, मुनक्का, मेथी और गर्म हल्दी दूध।
+2. **अपथ्य:** बासी भोजन, ठंडा पानी, उड़द दाल, राजमा, कच्चा सलाद और एसी की ठंडी हवा।
+3. **शास्त्रीय औषधियां:** योगराज गुग्गुलु (2 वटी दिन में दो बार), रास्नादि क्वाथ, क्षीरबला तेल कैप्सूल एवं महानारायण तेल की मालिश।
+4. **पंचकर्म:** जानु बस्ति एवं पत्रपिंड स्वेद से तुरंत आराम मिलता है।`
+        : `🌿 **Ayurvedic Protocol for Joint Pain & Osteoarthritis (Sandhigatavata):**
+1. **Pathya (Recommended Diet):** Warm cooked unctuous meals, cow ghee, garlic, ginger, soaked almonds, sesame seeds, and warm turmeric milk at bedtime.
+2. **Apathya (Foods to Avoid):** Cold refrigerated foods, carbonated drinks, dry snacks, raw sprouts at night, and direct AC cold air exposure.
+3. **Classical Herbal Formulations:** Yograj Guggulu (2 tablets twice daily after meals), Rasnadi Kwath, Ksheerabala 101 capsules, and topical Mahanarayana Taila.
+4. **Panchakarma Therapies:** Janu Basti (local medicated oil pool) and Patra Pinda Sweda for rapid pain relief.`;
+    } else if (lower.includes('ashwagandha') || lower.includes('अश्वगंधा')) {
+      responseText = lang === 'hi'
+        ? `🌿 **अश्वगंधा (Withania somnifera) — शास्त्रीय प्रोफाइल:**
+* **रस/गुण/वीर्य:** तिक्त-कषाय रस, स्निग्ध गुण, उष्ण वीर्य, मधुर विपाक।
+* **दोष प्रभाव:** वात एवं कफ दोष का मुख्य रूप से शमन करता है।
+* **लाभ:** तनाव (Cortisol) नियंत्रण, गहरी नींद, शारीरिक बल व ओज वृद्धि।
+* **सेवन विधि:** 3-5 ग्राम चूर्ण रात्रि में गुनगुने दूध एवं घी के साथ।`
+        : `🌿 **Ashwagandha (Withania somnifera) — Clinical Profile:**
+* **Pharmacodynamics:** Tikta-Kashaya (Bitter/Astringent) taste, Snigdha (Unctuous), Ushna (Heating) potency.
+* **Dosha Karma:** Highly pacifies Vata and Kapha; revitalizes Ojas and cognitive stamina.
+* **Indications:** Stress, chronic fatigue, insomnia, neuro-muscular weakness, and joint stiffness.
+* **Dosage & Anupana:** 3-5g Churna with warm boiled milk at bedtime.`;
     } else {
-      // AyushCare Patient Companion Persona
       responseText = lang === 'hi'
-        ? `🩺 **आयुषकेयर रोगी मार्गदर्शन:**
-1. **दवाइयां लेने का सही नियम:** आयुर्वेदिक औषधियां हमेशा डॉक्टर द्वारा बताए गए 'अनुपान' (जैसे गुनगुना पानी, दूध या शहद) के साथ ही लें।
-2. **घरेलू एवं जीवनशैली उपाय:** जोड़ों के दर्द में ठंडा पानी, बासी भोजन और खट्टी चीजों से बचें। तिल के तेल से हल्की मालिश करें और सिकाई करें।
-3. **परामर्श पूर्व तैयारी:** अपनी पुरानी सभी ब्लड रिपोर्ट्स और पर्चे पोर्टल पर अपलोड करें ताकि आपके डॉक्टर बिना समय गंवाए सटीक उपचार योजना बना सकें।`
-        : `🩺 **AyushCare Patient Companion Guidance:**
-1. **Taking Ayurvedic Formulations (Anupana):** Always take your prescribed Vati/Churna with the directed adjuvant (e.g. lukewarm water *Ushnodaka* for digestion, or warm milk at bedtime for rasayanas).
-2. **Daily Routine Alignment:** For joint stiffness and gastric issues, favor freshly cooked warm meals, avoid refrigerated cold beverages, and practice gentle mobility exercises.
-3. **Pre-Consultation Tip:** Uploading your previous lab reports and prescriptions to the AyushCase portal allows your doctor to instantly review your chronological medical timeline during consultation!`;
+        ? `🌿 **आयुर्वेदिक क्लिनिकल परामर्श:**
+आयुर्वेद के अनुसार स्वास्थ्य वात, पित्त और कफ के संतुलन (समदोष) और जाठराग्नि की सम्यावस्था पर निर्भर करता है।
+1. **दीपन-पाचन:** सोंठ, जीरा और धनिया जल का सेवन करें जिससे आम (विषाक्त रस) का पाचन हो सके।
+2. **आहार नियम:** अपनी प्रकृति अनुकूल ऋतुचर्या का पालन करें और ताजा सुपाच्य भोजन लें।
+3. **परामर्श:** सटीक औषधि मात्रा एवं अनुपान हेतु अपने आयुष चिकित्सक से संपर्क करें।`
+        : `🌿 **Ayurvedic Clinical Guidance:**
+Classical Ayurveda evaluates all health concerns through the dynamic balance of Tridoshas (Vata, Pitta, Kapha), Agni (digestive fire), and Dhatus (tissues).
+1. **Metabolic Balance:** Support digestive fire through Deepana-Pachana herbs (Ginger, Cumin, Coriander infusion) to clear toxic residue (*Ama*).
+2. **Pathya Regimen:** Follow circadian Dinacharya habits with freshly cooked, warm, wholesome meals aligned with your Prakriti.
+3. **Consultation:** Please consult your AYUSH practitioner for personalized herbal formulations and dosages.`;
     }
 
     return NextResponse.json({
