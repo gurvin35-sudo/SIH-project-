@@ -62,6 +62,223 @@ const AGENTS = [
   }
 ];
 
+function parseInlineMarkdown(text) {
+  if (!text) return '';
+
+  // Clean raw HTML tags (e.g. <b>, <p>, <span>) except keep text
+  const clean = String(text)
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?[^>]+(>|$)/g, '');
+
+  // Split by newlines first if any
+  const lines = clean.split('\n');
+
+  return lines.map((line, lineIdx) => {
+    // Match bold **...**, italics *...*, or inline code `...`
+    const parts = line.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+
+    const renderedParts = parts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+        return (
+          <strong key={i} className="font-bold text-stone-900">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
+        return (
+          <em key={i} className="italic text-stone-700">
+            {part.slice(1, -1)}
+          </em>
+        );
+      }
+      if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
+        return (
+          <code key={i} className="bg-stone-100 text-emerald-800 px-1 py-0.5 rounded text-[10px] font-mono">
+            {part.slice(1, -1)}
+          </code>
+        );
+      }
+      return part;
+    });
+
+    return (
+      <React.Fragment key={lineIdx}>
+        {lineIdx > 0 && <br />}
+        {renderedParts}
+      </React.Fragment>
+    );
+  });
+}
+
+function FormattedChatContent({ text }) {
+  if (!text) return null;
+
+  // Normalize newlines
+  const rawText = String(text).replace(/\r\n/g, '\n');
+
+  // Split lines while keeping table rows intact even if cells contain <br>
+  const rawLines = rawText.split('\n');
+  const lines = [];
+
+  rawLines.forEach((line) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      // Table row: keep in one line so table parsing is not corrupted
+      lines.push(trimmed);
+    } else {
+      // Split on <br> for regular lines
+      const subLines = trimmed.split(/<br\s*\/?>/gi);
+      subLines.forEach((sl) => {
+        if (sl.trim() || subLines.length === 1) {
+          lines.push(sl.trim());
+        }
+      });
+    }
+  });
+
+  const elements = [];
+  let tableRows = [];
+  let tableHeaders = [];
+
+  const flushTable = () => {
+    if (tableRows.length > 0) {
+      elements.push(
+        <div
+          key={`table-${elements.length}`}
+          className="my-2.5 overflow-hidden rounded-xl border border-stone-200 bg-stone-50/70 p-2 space-y-2"
+        >
+          {tableRows.map((row, rIdx) => (
+            <div
+              key={rIdx}
+              className="p-2.5 bg-white rounded-lg border border-stone-200 shadow-2xs text-[11px] space-y-1"
+            >
+              {row.map((cell, cIdx) => (
+                <div key={cIdx} className="leading-relaxed">
+                  {tableHeaders[cIdx] ? (
+                    <span className="font-bold text-emerald-950 mr-1.5">
+                      {tableHeaders[cIdx]}:
+                    </span>
+                  ) : null}
+                  <span className="text-stone-700">{parseInlineMarkdown(cell)}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    tableHeaders = [];
+    tableRows = [];
+  };
+
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+
+    // Table separator row |---|---|
+    if (/^\|?\s*[-:]+[-|\s:]*\|?$/.test(trimmed)) {
+      return;
+    }
+
+    // Table row | col1 | col2 |
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      const cells = trimmed
+        .split('|')
+        .map((c) => c.trim())
+        .filter((c, i, arr) => i > 0 && i < arr.length - 1);
+
+      if (tableHeaders.length === 0 && tableRows.length === 0) {
+        tableHeaders = cells;
+      } else {
+        tableRows.push(cells);
+      }
+      return;
+    } else if (tableHeaders.length > 0 || tableRows.length > 0) {
+      flushTable();
+    }
+
+    // Horizontal Rule
+    if (/^---+$/.test(trimmed) || /^===+$/.test(trimmed)) {
+      elements.push(<hr key={`hr-${idx}`} className="my-2 border-stone-200" />);
+      return;
+    }
+
+    // Headings
+    if (trimmed.startsWith('### ')) {
+      elements.push(
+        <h4 key={`h4-${idx}`} className="font-bold text-emerald-950 text-xs mt-2 mb-0.5">
+          {parseInlineMarkdown(trimmed.replace(/^###\s*/, ''))}
+        </h4>
+      );
+      return;
+    }
+    if (trimmed.startsWith('## ')) {
+      elements.push(
+        <h3 key={`h3-${idx}`} className="font-extrabold text-emerald-950 text-xs sm:text-sm mt-2.5 mb-1 pb-0.5 border-b border-stone-100">
+          {parseInlineMarkdown(trimmed.replace(/^##\s*/, ''))}
+        </h3>
+      );
+      return;
+    }
+    if (trimmed.startsWith('# ')) {
+      elements.push(
+        <h2 key={`h2-${idx}`} className="font-black text-emerald-950 text-sm mt-2.5 mb-1">
+          {parseInlineMarkdown(trimmed.replace(/^#\s*/, ''))}
+        </h2>
+      );
+      return;
+    }
+
+    // Numbered list (1. item)
+    const numMatch = trimmed.match(/^(\d+)[\.\)]\s+(.*)/);
+    if (numMatch) {
+      elements.push(
+        <div key={`num-${idx}`} className="flex items-start gap-2 my-1 pl-1">
+          <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-900 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+            {numMatch[1]}
+          </span>
+          <span className="flex-1 leading-relaxed text-stone-800">
+            {parseInlineMarkdown(numMatch[2])}
+          </span>
+        </div>
+      );
+      return;
+    }
+
+    // Bullet list (- item or * item)
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
+      elements.push(
+        <div key={`bullet-${idx}`} className="flex items-start gap-2 my-0.5 pl-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0 mt-1.5" />
+          <span className="flex-1 leading-relaxed text-stone-800">
+            {parseInlineMarkdown(trimmed.replace(/^[-*•]\s*/, ''))}
+          </span>
+        </div>
+      );
+      return;
+    }
+
+    // Empty lines
+    if (!trimmed) {
+      elements.push(<div key={`space-${idx}`} className="h-1" />);
+      return;
+    }
+
+    // Regular paragraphs
+    elements.push(
+      <p key={`p-${idx}`} className="leading-relaxed text-stone-800 my-0.5">
+        {parseInlineMarkdown(trimmed)}
+      </p>
+    );
+  });
+
+  if (tableRows.length > 0 || tableHeaders.length > 0) {
+    flushTable();
+  }
+
+  return <div className="space-y-1">{elements}</div>;
+}
+
 export default function MultiAgentChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeAgentId, setActiveAgentId] = useState('ayur_vaidya');
@@ -353,7 +570,11 @@ export default function MultiAgentChatbot() {
                       <span>{msg.time}</span>
                     </div>
                   )}
-                  <p className="whitespace-pre-line font-normal">{msg.text}</p>
+                  {msg.sender === 'user' ? (
+                    <p className="whitespace-pre-line font-medium text-white">{msg.text}</p>
+                  ) : (
+                    <FormattedChatContent text={msg.text} />
+                  )}
                 </div>
               </div>
             ))}

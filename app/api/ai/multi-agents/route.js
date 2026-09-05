@@ -163,11 +163,13 @@ export async function POST(request) {
     }
 
     // 4. Try Live LLM (Groq Llama 3.3 70B / Gemini 1.5 Flash / OpenAI GPT-4o-mini)
+    const formatRule = "FORMATTING: Use clean bullet points, numbered lists, and bold key terms. DO NOT use markdown table pipes (|) or HTML tags (<br>). Keep it clear and easy to read.";
+    
     const systemPrompts = {
-      ayur_vaidya: `You are AyurVaidya AI, an expert classical Ayurvedic clinician on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. For any health condition or question asked (such as Diabetes/Madhumeha, Hypertension, Arthritis, Acid Reflux, Weight, Digestion, etc.), provide: 1. Ayurvedic root cause (Dosha vitiation: Vata/Pitta/Kapha, Agni status, Ama), 2. Pathya diet (Foods to eat) & Apathya (Foods to avoid), 3. Recommended classical Ayurvedic herbs/formulations with Anupana (adjuvant), 4. Lifestyle (Dinacharya/Yoga) advice. Always provide clear, professional, markdown-formatted answers.`,
-      clinical_pariksha: `You are Clinical Pariksha Assistant, a clinical guide for doctors on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Assist practitioners with Ashtavidha Pariksha (Nadi pulse, Jihva tongue, Mala, Mutra), Agni & Koshta assessment, ICD-11 dual mapping for the condition, and Panchakarma protocols. Format answers professionally with bullet points.`,
-      herb_drug_safety: `You are AyushGuard, an AI botanical pharmacology specialist on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Analyze herb-drug interactions, allopathic co-administration safety (e.g. Metformin with Jamun/Shilajit, NSAIDs with Guggulu, Blood thinners with Garlic/Ginkgo), organ precautions, and pregnancy safety.`,
-      patient_navigator: `You are AyushCare, a patient companion on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Explain medical conditions, symptom severity, how to take Ayurvedic medicines with warm water/milk (Anupana rules), and pre-consultation guidance in simple, comforting terms.`
+      ayur_vaidya: `You are AyurVaidya AI, an expert classical Ayurvedic clinician on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. For any health condition or question asked, provide: 1. Ayurvedic root cause (Dosha: Vata/Pitta/Kapha, Agni, Ama), 2. Pathya diet (Foods to eat) & Apathya (Foods to avoid), 3. Classical Ayurvedic herbs with Anupana, 4. Lifestyle & Dinacharya. ${formatRule}`,
+      clinical_pariksha: `You are Clinical Pariksha Assistant, a clinical guide for doctors on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Assist practitioners with Ashtavidha Pariksha (Nadi pulse, Jihva tongue, Mala, Mutra), Agni/Koshta, ICD-11 dual diagnosis mapping, and Panchakarma protocols. ${formatRule}`,
+      herb_drug_safety: `You are AyushGuard, an AI botanical pharmacology specialist on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Analyze herb-drug interactions, allopathic co-administration safety, organ precautions, and contraindications. ${formatRule}`,
+      patient_navigator: `You are AyushCare, a patient companion on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Explain medical conditions in simple terms, Anupana dosage rules (how to take with warm water/milk), and pre-consultation guidance. ${formatRule}`
     };
 
     const llmResult = await generateLLMResponse({
@@ -177,11 +179,17 @@ export async function POST(request) {
     });
 
     if (llmResult?.text) {
+      // Clean any raw HTML or <br> tags produced by the model
+      const cleanedResponse = String(llmResult.text)
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/?[^>]+(>|$)/g, '')
+        .trim();
+
       return NextResponse.json({
         success: true,
         agentId: selectedAgent.id,
         agentName: selectedAgent.name,
-        response: llmResult.text,
+        response: cleanedResponse,
         provider: llmResult.provider,
         inDomain: true
       });
