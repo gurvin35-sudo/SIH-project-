@@ -204,10 +204,11 @@ export default function PatientDetailPage() {
 
             <button
               onClick={() => setSummaryModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 transition"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 transition shadow-xs"
+              title="Open external popup showing complete AI Intake & OCR Records"
             >
               <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Full Handover Summary</span>
+              <span>📄 View AI Intake & OCR (Popup)</span>
             </button>
           </div>
         </div>
@@ -264,13 +265,24 @@ export default function PatientDetailPage() {
             </div>
           </div>
 
-          <Link
-            href={`/patients/${patient.id}/case-taking?fromAi=1`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition self-start sm:self-auto shrink-0"
-          >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Verify & Pre-fill Case Sheet →</span>
-          </Link>
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setSummaryModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-stone-50 text-stone-800 border border-amber-300 shadow-2xs transition"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+              <span>🔍 Open AI & OCR Popup</span>
+            </button>
+
+            <Link
+              href={`/patients/${patient.id}/case-taking?fromAi=1`}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Verify & Pre-fill Case Sheet →</span>
+            </Link>
+          </div>
         </div>
 
         {/* Structured History Grid */}
@@ -432,13 +444,21 @@ export default function PatientDetailPage() {
 
       {/* 4. DIGITIZED OCR MEDICAL DOCUMENTS & LAB PARAMETERS */}
       <div className="bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+        <div className="flex items-center justify-between border-b border-stone-100 pb-3 flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <Layers className="w-5 h-5 text-emerald-700" />
             <h2 className="text-base font-black text-stone-900">
               Digitized Medical Documents & OCR Findings ({documents.length})
             </h2>
           </div>
+          <button
+            type="button"
+            onClick={() => setSummaryModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Open All in OCR Popup</span>
+          </button>
         </div>
 
         {documents.length === 0 ? (
@@ -455,7 +475,7 @@ export default function PatientDetailPage() {
                 }
               } catch (e) {}
 
-              const meds = extracted.medicines || [];
+              const meds = extracted.medications || extracted.medicines || [];
               const labs = extracted.labValues || [];
 
               return (
@@ -465,30 +485,101 @@ export default function PatientDetailPage() {
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800">
-                        {doc.docType}
-                      </span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                          {extracted.ayushSystem || doc.docType || 'Prescription'}
+                        </span>
+                        {extracted.doctor && (
+                          <span className="text-[10px] text-stone-500 font-medium">
+                            Dr: {extracted.doctor}
+                          </span>
+                        )}
+                      </div>
                       <h4 className="font-bold text-xs text-stone-900 mt-1">{doc.title}</h4>
                       <span className="text-[10px] text-stone-400">Date: {formatDate(doc.docDate)}</span>
                     </div>
+
+                    {meds.length > 0 && (
+                      <Link
+                        href={`/patients/${patient.id}/case-taking?fromAi=1`}
+                        className="text-[10px] font-bold px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg flex items-center gap-1 transition"
+                      >
+                        <Pill className="w-3 h-3 text-emerald-600" />
+                        <span>Use in Case Sheet</span>
+                      </Link>
+                    )}
                   </div>
+
+                  {/* Diagnosis */}
+                  {extracted.diagnosis && (
+                    <div className="text-[11px] text-stone-700 bg-white p-2 rounded-xl border border-stone-200">
+                      <strong className="text-stone-900">Diagnosis: </strong>
+                      <span className="text-emerald-950 font-semibold">{extracted.diagnosis}</span>
+                    </div>
+                  )}
 
                   {/* Medicines Grid */}
                   {meds.length > 0 && (
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <span className="text-[10px] uppercase font-bold text-stone-400 block">
-                        Prescribed Medicines:
+                        Extracted Prescriptions ({meds.length}):
                       </span>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                         {meds.map((m, mIdx) => (
-                          <span
+                          <div
                             key={mIdx}
-                            className="text-[11px] px-2 py-0.5 rounded-lg bg-white border border-stone-200 font-medium text-stone-700"
+                            className="p-2.5 rounded-xl bg-white border border-stone-200 flex items-start gap-2"
                           >
-                            💊 {m.name} ({m.dose || 'Std'})
-                          </span>
+                            <Pill className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-bold text-[11px] text-stone-900 truncate">
+                                  {m.name}
+                                </span>
+                                {m.form && (
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100/80 text-emerald-800 font-semibold">
+                                    {m.form}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-stone-500 mt-0.5">
+                                {m.dose || m.dosage ? `Dose: ${m.dose || m.dosage}` : ''}
+                                {m.timing ? ` • ${m.timing}` : ''}
+                                {m.duration ? ` • ${m.duration}` : ''}
+                              </div>
+                              {m.anupana && (
+                                <div className="text-[10px] text-emerald-800 mt-0.5 font-medium">
+                                  🥛 Anupana: {m.anupana}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Pathya / Apathya / Procedures */}
+                  {(extracted.pathya || extracted.apathya || extracted.procedures) && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                      {extracted.pathya && (
+                        <div className="p-2 bg-emerald-50/60 rounded-lg border border-emerald-200">
+                          <strong className="text-emerald-900 block text-[10px] uppercase">Pathya (Diet/DOs):</strong>
+                          <span className="text-emerald-950">{extracted.pathya}</span>
+                        </div>
+                      )}
+                      {extracted.apathya && (
+                        <div className="p-2 bg-rose-50/60 rounded-lg border border-rose-200">
+                          <strong className="text-rose-900 block text-[10px] uppercase">Apathya (DONTs):</strong>
+                          <span className="text-rose-950">{extracted.apathya}</span>
+                        </div>
+                      )}
+                      {extracted.procedures && (
+                        <div className="p-2 bg-amber-50/60 rounded-lg border border-amber-200 sm:col-span-2">
+                          <strong className="text-amber-900 block text-[10px] uppercase">Procedures / Panchakarma:</strong>
+                          <span className="text-amber-950">{extracted.procedures}</span>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -667,6 +758,7 @@ export default function PatientDetailPage() {
         patientData={patient}
         isOpen={summaryModalOpen}
         onClose={() => setSummaryModalOpen(false)}
+        initialTab="intake_ocr"
       />
     </div>
   );

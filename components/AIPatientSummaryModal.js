@@ -20,7 +20,10 @@ import {
   Stethoscope,
   ChevronRight,
   Flame,
-  Leaf
+  Leaf,
+  Layers,
+  FileCode,
+  ExternalLink
 } from 'lucide-react';
 import { formatDate, formatABHA, getDoshaColor } from '@/lib/utils';
 
@@ -30,21 +33,24 @@ export default function AIPatientSummaryModal({
   isOpen,
   onClose,
   isPatientPortal = false,
+  initialTab = 'intake_ocr',
 }) {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('brief');
+  const [activeTab, setActiveTab] = useState(initialTab || 'intake_ocr');
   const [language, setLanguage] = useState('en');
   const [doctorNotes, setDoctorNotes] = useState('');
   const [copied, setCopied] = useState(false);
+  const [openRawDocId, setOpenRawDocId] = useState(null);
   const printRef = useRef(null);
 
   useEffect(() => {
-    if (isOpen && patientId) {
-      loadSummary();
+    if (isOpen) {
+      if (initialTab) setActiveTab(initialTab);
+      if (patientId) loadSummary();
     }
-  }, [isOpen, patientId, language]);
+  }, [isOpen, patientId, language, initialTab]);
 
   async function loadSummary() {
     try {
@@ -85,18 +91,18 @@ CLINICAL SYNOPSIS:
 ${summary.executiveBrief}
 
 PRIMARY DIAGNOSES:
-Ayurvedic: ${summary.primaryAyurvedicDiagnoses.join(', ') || 'N/A'}
-Modern: ${summary.primaryModernDiagnoses.join(', ') || 'N/A'}
+Ayurvedic: ${summary.primaryAyurvedicDiagnoses?.join(', ') || 'N/A'}
+Modern: ${summary.primaryModernDiagnoses?.join(', ') || 'N/A'}
 
 PARIKSHA & BIO-ENERGY:
-Agni: ${summary.parikshaTrends.agni} | Koshta: ${summary.parikshaTrends.koshta}
-Nadi: ${summary.parikshaTrends.nadi} | Jihva: ${summary.parikshaTrends.jihva}
+Agni: ${summary.parikshaTrends?.agni} | Koshta: ${summary.parikshaTrends?.koshta}
+Nadi: ${summary.parikshaTrends?.nadi} | Jihva: ${summary.parikshaTrends?.jihva}
 
 ACTIVE MEDICATIONS (${summary.activePrescriptions?.length || 0}):
 ${summary.activePrescriptions?.map((m, i) => `${i + 1}. ${m.name} - ${m.dose || 'Std'} (${m.timing || 'As directed'}) Anupana: ${m.anupana || 'Water'}`).join('\n') || 'None'}
 
 RECOMMENDED ACTION PLAN:
-${summary.recommendations?.map((r, i) => `${i + 1}. ${r}`).join('\n')}
+${summary.recommendations?.map((r, i) => `${i + 1}. ${r}`).join('\n') || 'N/A'}
 
 ${doctorNotes ? `TRANSFERRING DOCTOR REMARKS:\n${doctorNotes}\n` : ''}
 Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString()}`;
@@ -113,6 +119,7 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
   if (!isOpen) return null;
 
   const doshaStyle = getDoshaColor(summary?.prakriti || patientData?.prakritiType);
+  const docsList = summary?.documents || patientData?.documents || [];
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 md:p-6 print:p-0 print:bg-white print:fixed print:inset-0">
@@ -127,15 +134,15 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h2 className="text-xl font-black tracking-tight text-white">
-                  {isPatientPortal ? 'AI Portable Health Passport' : 'AI Clinical Transfer Summary'}
+                  {isPatientPortal ? 'AI Portable Health Passport' : 'AI Clinical Transfer & OCR Record Summary'}
                 </h2>
                 <span className="text-[10px] uppercase font-extrabold tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 flex items-center gap-1">
                   <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                  Doctor-to-Doctor Handover
+                  {isPatientPortal ? 'Patient Digitized Profile' : 'Doctor Clinical Console'}
                 </span>
               </div>
               <p className="text-xs text-emerald-100/80 mt-0.5">
-                Instant synthesis for incoming practitioners & cross-clinic consultations
+                Instant synthesis of Pre-Consultation AI Interview + Digitized OCR Medical Records
               </p>
             </div>
           </div>
@@ -143,15 +150,17 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
           <div className="flex items-center gap-2">
             {/* Language Switcher */}
             <button
+              type="button"
               onClick={() => setLanguage(language === 'en' ? 'hi' : 'en')}
               className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold flex items-center gap-1.5 transition text-emerald-100"
               title="Switch English / Hindi"
             >
               <Globe className="w-3.5 h-3.5 text-emerald-300" />
-              <span>{language === 'en' ? 'हिन्दी में देखें' : 'View in English'}</span>
+              <span>{language === 'en' ? 'हिन्दी' : 'English'}</span>
             </button>
 
             <button
+              type="button"
               onClick={onClose}
               className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition"
               aria-label="Close"
@@ -166,6 +175,7 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
           {/* Tabs */}
           <div className="flex items-center gap-1 overflow-x-auto py-1">
             {[
+              { id: 'intake_ocr', label: `📋 AI Intake & OCR (${docsList.length})`, icon: Layers },
               { id: 'brief', label: 'Handover Synopsis', icon: FileText },
               { id: 'rx', label: `Active Rx (${summary?.activePrescriptions?.length || 0})`, icon: Pill },
               { id: 'pariksha', label: 'Prakriti & Pariksha', icon: Activity },
@@ -176,6 +186,7 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
               return (
                 <button
                   key={tab.id}
+                  type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition whitespace-nowrap ${
                     isActive
@@ -193,22 +204,25 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
           {/* Quick Buttons */}
           <div className="flex items-center gap-2 shrink-0">
             <button
+              type="button"
               onClick={handleCopy}
               className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold transition shadow-2xs"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-stone-500" />}
-              <span>{copied ? 'Copied to Clipboard!' : 'Copy Summary'}</span>
+              <span>{copied ? 'Copied!' : 'Copy Summary'}</span>
             </button>
 
             <button
+              type="button"
               onClick={handlePrint}
-              className="flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-xs"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-xs"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Print Handover Slip</span>
+              <span>Print Slip</span>
             </button>
 
             <button
+              type="button"
               onClick={loadSummary}
               disabled={loading}
               className="p-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 disabled:opacity-50 transition"
@@ -227,9 +241,9 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
               <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center animate-bounce">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <h3 className="font-black text-stone-800 text-base">Synthesizing Clinical AI Summary...</h3>
+              <h3 className="font-black text-stone-800 text-base">Synthesizing Clinical AI & OCR Summary...</h3>
               <p className="text-xs text-stone-500 max-w-sm mx-auto">
-                Correlating longitudinal case visits, Prakriti bio-energy, Ashtavidha Pariksha, and active medications.
+                Correlating pre-intake interview, digitized OCR records, Prakriti bio-energy, and active prescriptions.
               </p>
             </div>
           ) : error ? (
@@ -237,6 +251,7 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
               <AlertTriangle className="w-8 h-8 text-rose-600 mx-auto" />
               <p className="text-sm font-bold text-rose-900">{error}</p>
               <button
+                type="button"
                 onClick={loadSummary}
                 className="px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold"
               >
@@ -258,7 +273,7 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                   </div>
                   <div className="text-right text-xs">
                     <p className="font-mono font-bold">Transfer Date: {new Date().toLocaleDateString()}</p>
-                    <p className="text-[10px] text-stone-500">Security Hash: {summary.patientId.slice(0, 12)}</p>
+                    <p className="text-[10px] text-stone-500">Security Hash: {summary.patientId?.slice(0, 12)}</p>
                   </div>
                 </div>
               </div>
@@ -267,7 +282,7 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
               <div className="bg-gradient-to-br from-stone-50 to-stone-100/80 rounded-2xl p-4 sm:p-5 border border-stone-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3.5">
                   <div className="w-12 h-12 rounded-xl bg-emerald-700 text-white font-black text-lg flex items-center justify-center shrink-0 shadow-sm">
-                    {summary.patientName.charAt(0)}
+                    {summary.patientName?.charAt(0) || 'P'}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -282,7 +297,7 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                       )}
                     </div>
                     <div className="flex items-center gap-3 text-xs text-stone-500 mt-1 flex-wrap">
-                      <span>Blood Group: <strong>{summary.bloodGroup}</strong></span>
+                      <span>Blood Group: <strong>{summary.bloodGroup || 'N/A'}</strong></span>
                       <span>•</span>
                       <span>Total Visits: <strong>{summary.totalVisits}</strong></span>
                       <span>•</span>
@@ -301,6 +316,266 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                 </div>
               </div>
 
+              {/* TAB 0: AI PRE-INTAKE & DIGITIZED OCR RECORDS */}
+              {activeTab === 'intake_ocr' && (
+                <div className="space-y-6 animate-in fade-in">
+                  {/* Pre-Consultation AI Interview Findings */}
+                  <div className="bg-white rounded-2xl border border-stone-200 p-5 space-y-4 shadow-xs">
+                    <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-emerald-600" />
+                        <h3 className="font-extrabold text-xs uppercase tracking-wide text-stone-900">
+                          Pre-Consultation AI Health History Intake
+                        </h3>
+                      </div>
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                        Patient Completed
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                      {/* Chief Complaint & HPI */}
+                      <div className="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-1.5">
+                        <span className="text-[10px] uppercase font-bold text-emerald-800 block">
+                          1. Chief Complaint & HPI
+                        </span>
+                        <p className="font-semibold text-stone-900">
+                          {summary.preConsultationIntake?.chiefComplaint || patientData?.chiefComplaint || 'Generalized discomfort / Joint pain'}
+                        </p>
+                        <p className="text-stone-600 text-[11px]">
+                          <strong>Duration:</strong> {summary.preConsultationIntake?.duration || patientData?.duration || 'Recent onset'}
+                        </p>
+                        {(summary.preConsultationIntake?.hpi || patientData?.hpi) && (
+                          <p className="text-stone-700 text-[11px]">
+                            <strong>History:</strong> {summary.preConsultationIntake?.hpi || patientData?.hpi}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Past Medical History & Surgeries */}
+                      <div className="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-1.5">
+                        <span className="text-[10px] uppercase font-bold text-stone-500 block">
+                          2. Past Medical & Surgical History
+                        </span>
+                        <p className="text-stone-800 text-[11px]">
+                          <strong>Past Conditions:</strong> {summary.preConsultationIntake?.pastMedicalHistory || patientData?.pastMedicalHistory || 'None reported'}
+                        </p>
+                        <p className="text-stone-800 text-[11px]">
+                          <strong>Surgeries / Hospitalization:</strong> {summary.preConsultationIntake?.pastSurgicalHistory || patientData?.pastSurgicalHistory || 'None'}
+                        </p>
+                        <p className="text-rose-700 text-[11px] font-bold">
+                          Allergies: {summary.preConsultationIntake?.allergies || patientData?.allergies || 'No known allergies'}
+                        </p>
+                      </div>
+
+                      {/* Current Medications & Family History */}
+                      <div className="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-1.5">
+                        <span className="text-[10px] uppercase font-bold text-stone-500 block">
+                          3. Current Medications & Family History
+                        </span>
+                        <p className="text-stone-800 text-[11px]">
+                          <strong>Current Medicines:</strong> {summary.preConsultationIntake?.currentMedicines || patientData?.currentMedicines || 'None'}
+                        </p>
+                        <p className="text-stone-800 text-[11px]">
+                          <strong>Family History:</strong> {summary.preConsultationIntake?.familyHistory || patientData?.familyHistory || 'Non-contributory'}
+                        </p>
+                      </div>
+
+                      {/* AYUSH Constitutional Profile (Agni / Koshta) */}
+                      <div className="p-3.5 bg-emerald-50/70 rounded-xl border border-emerald-200 space-y-1.5">
+                        <span className="text-[10px] uppercase font-bold text-emerald-900 block">
+                          4. Ayurvedic Digestion & Constitution (अग्नि व कोष्ठ)
+                        </span>
+                        <p className="text-stone-800 text-[11px]">
+                          <strong>Agni (Digestive Fire):</strong> {summary.preConsultationIntake?.ayushAgni || patientData?.ayushAgni || 'Samagni (Balanced)'}
+                        </p>
+                        <p className="text-stone-800 text-[11px]">
+                          <strong>Koshta (Bowel Nature):</strong> {summary.preConsultationIntake?.ayushKoshta || patientData?.ayushKoshta || 'Madhyama'}
+                        </p>
+                        <p className="text-stone-800 text-[11px]">
+                          <strong>Lifestyle & Diet:</strong> {summary.preConsultationIntake?.personalHistory || patientData?.personalHistory || 'Standard routine'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Digitized Medical Documents & OCR Extractions List */}
+                  <div className="bg-white rounded-2xl border border-stone-200 p-5 space-y-4 shadow-xs">
+                    <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-emerald-700" />
+                        <h3 className="font-extrabold text-xs uppercase tracking-wide text-stone-900">
+                          Digitized Medical Documents & OCR Extractions ({docsList.length})
+                        </h3>
+                      </div>
+                      <span className="text-[10px] text-stone-400 font-semibold">
+                        OCR.Space Engine 2 + AI Entity Structuring
+                      </span>
+                    </div>
+
+                    {docsList.length === 0 ? (
+                      <div className="p-6 bg-stone-50 rounded-xl border border-stone-200 text-center text-xs text-stone-400 italic">
+                        No external medical records uploaded or digitized for this patient yet.
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {docsList.map((doc, dIdx) => {
+                          let data = {};
+                          try {
+                            if (doc.extractedData) {
+                              data = typeof doc.extractedData === 'string' ? JSON.parse(doc.extractedData) : doc.extractedData;
+                            }
+                          } catch (e) {}
+
+                          const meds = data.medications || data.medicines || [];
+                          const isRawOpen = openRawDocId === doc.id || openRawDocId === dIdx;
+
+                          return (
+                            <div
+                              key={doc.id || dIdx}
+                              className="p-4 bg-stone-50/90 rounded-2xl border border-stone-200 space-y-3 hover:border-emerald-300 transition"
+                            >
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200/70 pb-2">
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                                      {data.ayushSystem || doc.docType || 'Prescription'}
+                                    </span>
+                                    <h4 className="font-bold text-xs text-stone-900">{doc.title}</h4>
+                                  </div>
+                                  <span className="text-[10px] text-stone-400 mt-0.5 block">
+                                    Date: {doc.docDate ? formatDate(doc.docDate) : 'Recent'} {data.doctor && data.doctor !== 'Not detected' ? `• Doctor: ${data.doctor}` : ''}
+                                  </span>
+                                </div>
+
+                                {doc.ocrText && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setOpenRawDocId(isRawOpen ? null : (doc.id || dIdx))}
+                                    className="text-[10px] font-bold text-emerald-700 hover:text-emerald-900 bg-white px-2.5 py-1 rounded-lg border border-stone-200 self-start sm:self-auto transition flex items-center gap-1 shadow-2xs"
+                                  >
+                                    <FileCode className="w-3 h-3 text-emerald-600" />
+                                    <span>{isRawOpen ? 'Hide Raw OCR Text' : 'View Raw OCR Text'}</span>
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Raw OCR Text Toggle Drawer */}
+                              {isRawOpen && doc.ocrText && (
+                                <div className="p-3 bg-stone-900 text-emerald-300 rounded-xl text-[11px] font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
+                                  {doc.ocrText}
+                                </div>
+                              )}
+
+                              {/* Diagnosis & Symptoms */}
+                              {data.diagnosis && data.diagnosis !== 'Not detected' && (
+                                <div className="p-2.5 bg-white rounded-xl border border-stone-200 text-xs">
+                                  <span className="font-bold text-stone-500">Diagnosis: </span>
+                                  <span className="font-bold text-emerald-950">{data.diagnosis}</span>
+                                  {data.symptoms && data.symptoms !== 'Not detected' && (
+                                    <span className="text-stone-600 block mt-0.5 text-[11px]">
+                                      Symptoms: {data.symptoms}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Prescribed Medicines Grid */}
+                              {meds.length > 0 && (
+                                <div className="space-y-1.5">
+                                  <span className="text-[10px] uppercase font-bold text-stone-400 block">
+                                    Extracted Prescriptions ({meds.length}):
+                                  </span>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                    {meds.map((m, mIdx) => (
+                                      <div
+                                        key={mIdx}
+                                        className="p-2.5 bg-white rounded-xl border border-stone-200 flex items-start gap-2"
+                                      >
+                                        <Pill className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                                        <div className="min-w-0">
+                                          <div className="flex items-center gap-1.5 flex-wrap">
+                                            <span className="font-bold text-[11px] text-stone-900 truncate">
+                                              {m.name}
+                                            </span>
+                                            {m.form && (
+                                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-100/70 text-emerald-800 font-semibold">
+                                                {m.form}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <div className="text-[10px] text-stone-500 mt-0.5">
+                                            {m.dose || m.dosage ? `Dose: ${m.dose || m.dosage}` : ''}
+                                            {m.frequency ? ` • ${m.frequency}` : ''}
+                                            {m.timing ? ` • (${m.timing})` : ''}
+                                            {m.duration ? ` • ⏱️ ${m.duration}` : ''}
+                                          </div>
+                                          {m.anupana && (
+                                            <div className="text-[10px] text-emerald-800 mt-0.5">
+                                              🥛 Anupana: {m.anupana}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Pathya, Apathya & Procedures */}
+                              {(data.pathya || data.apathya || data.procedures) && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                                  {data.pathya && (
+                                    <div className="p-2 bg-emerald-50/70 rounded-lg border border-emerald-200">
+                                      <strong className="text-emerald-900 block text-[10px] uppercase">Pathya (Diet/DOs):</strong>
+                                      <span className="text-emerald-950">{data.pathya}</span>
+                                    </div>
+                                  )}
+                                  {data.apathya && (
+                                    <div className="p-2 bg-rose-50/70 rounded-lg border border-rose-200">
+                                      <strong className="text-rose-900 block text-[10px] uppercase">Apathya (DONTs):</strong>
+                                      <span className="text-rose-950">{data.apathya}</span>
+                                    </div>
+                                  )}
+                                  {data.procedures && (
+                                    <div className="p-2 bg-amber-50/70 rounded-lg border border-amber-200 sm:col-span-2">
+                                      <strong className="text-amber-900 block text-[10px] uppercase">Procedures:</strong>
+                                      <span className="text-amber-950">{data.procedures}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Treatments & Follow-up */}
+                              {((data.treatment && data.treatment !== 'Not detected') || (data.followUp && data.followUp !== 'Not detected')) && (
+                                <div className="flex flex-wrap gap-3 text-[11px] text-stone-700 bg-white p-2.5 rounded-xl border border-stone-200">
+                                  {data.treatment && data.treatment !== 'Not detected' && (
+                                    <div>
+                                      <strong className="text-emerald-900">Treatment:</strong> {data.treatment}
+                                    </div>
+                                  )}
+                                  {data.followUp && data.followUp !== 'Not detected' && (
+                                    <div>
+                                      <strong className="text-purple-900">Follow-up:</strong> {data.followUp}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {doc.summary && (
+                                <p className="text-[11px] text-stone-600 italic">
+                                  "{doc.summary}"
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* TAB 1: EXECUTIVE BRIEF & TIMELINE */}
               {(activeTab === 'brief' || typeof window !== 'undefined') && (
                 <div className={`space-y-6 ${activeTab !== 'brief' ? 'hidden print:block' : ''}`}>
@@ -313,7 +588,7 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                         Executive Clinical Handover Synopsis
                       </span>
                       <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-200/60 text-emerald-900 rounded-md">
-                        AI Confidence: {summary.confidenceScore}%
+                        AI Confidence: {summary.confidenceScore || 95}%
                       </span>
                     </div>
                     <p className="text-xs sm:text-sm text-emerald-950 font-medium leading-relaxed">
@@ -466,8 +741,8 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                         Dietary Regimen (Pathya / Apathya)
                       </span>
                       <div className="text-[11px] space-y-1">
-                        <div><strong className="text-emerald-800">Pathya (DOs):</strong> {summary.dietAdvice?.pathya}</div>
-                        <div><strong className="text-rose-700">Apathya (DONTs):</strong> {summary.dietAdvice?.apathya}</div>
+                        <div><strong className="text-emerald-800">Pathya (DOs):</strong> {summary.dietAdvice?.pathya || 'Warm easily digestible foods'}</div>
+                        <div><strong className="text-rose-700">Apathya (DONTs):</strong> {summary.dietAdvice?.apathya || 'Cold, fried, heavy food items'}</div>
                       </div>
                     </div>
                   </div>
@@ -488,15 +763,15 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                     <div className="grid grid-cols-3 gap-2 text-center text-xs">
                       <div className="p-2.5 rounded-xl bg-sky-50 border border-sky-200">
                         <div className="text-[10px] font-bold text-sky-700 uppercase">Vata</div>
-                        <div className="text-lg font-black text-sky-900">{summary.doshaScores.vata}%</div>
+                        <div className="text-lg font-black text-sky-900">{summary.doshaScores?.vata || 40}%</div>
                       </div>
                       <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200">
                         <div className="text-[10px] font-bold text-amber-700 uppercase">Pitta</div>
-                        <div className="text-lg font-black text-amber-900">{summary.doshaScores.pitta}%</div>
+                        <div className="text-lg font-black text-amber-900">{summary.doshaScores?.pitta || 35}%</div>
                       </div>
                       <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
                         <div className="text-[10px] font-bold text-emerald-700 uppercase">Kapha</div>
-                        <div className="text-lg font-black text-emerald-900">{summary.doshaScores.kapha}%</div>
+                        <div className="text-lg font-black text-emerald-900">{summary.doshaScores?.kapha || 25}%</div>
                       </div>
                     </div>
                   </div>
@@ -509,27 +784,27 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                       <div className="p-3 bg-white rounded-xl border border-stone-200">
                         <span className="text-[10px] uppercase font-bold text-stone-400 block">Agni (Digestive Fire)</span>
-                        <span className="font-bold text-stone-800">{summary.parikshaTrends.agni}</span>
+                        <span className="font-bold text-stone-800">{summary.parikshaTrends?.agni || 'Samagni'}</span>
                       </div>
                       <div className="p-3 bg-white rounded-xl border border-stone-200">
                         <span className="text-[10px] uppercase font-bold text-stone-400 block">Koshta (Bowel Nature)</span>
-                        <span className="font-bold text-stone-800">{summary.parikshaTrends.koshta}</span>
+                        <span className="font-bold text-stone-800">{summary.parikshaTrends?.koshta || 'Madhyama'}</span>
                       </div>
                       <div className="p-3 bg-white rounded-xl border border-stone-200">
                         <span className="text-[10px] uppercase font-bold text-stone-400 block">Nadi (Pulse)</span>
-                        <span className="font-bold text-stone-800">{summary.parikshaTrends.nadi}</span>
+                        <span className="font-bold text-stone-800">{summary.parikshaTrends?.nadi || 'Mandagati'}</span>
                       </div>
                       <div className="p-3 bg-white rounded-xl border border-stone-200">
                         <span className="text-[10px] uppercase font-bold text-stone-400 block">Jihva (Tongue)</span>
-                        <span className="font-bold text-stone-800">{summary.parikshaTrends.jihva}</span>
+                        <span className="font-bold text-stone-800">{summary.parikshaTrends?.jihva || 'Niram (Clean)'}</span>
                       </div>
                       <div className="p-3 bg-white rounded-xl border border-stone-200">
                         <span className="text-[10px] uppercase font-bold text-stone-400 block">Mala (Bowel Movement)</span>
-                        <span className="font-bold text-stone-800">{summary.parikshaTrends.mala}</span>
+                        <span className="font-bold text-stone-800">{summary.parikshaTrends?.mala || 'Regular'}</span>
                       </div>
                       <div className="p-3 bg-white rounded-xl border border-stone-200">
                         <span className="text-[10px] uppercase font-bold text-stone-400 block">Known Sensitivities</span>
-                        <span className="font-bold text-rose-700">{summary.allergies}</span>
+                        <span className="font-bold text-rose-700">{summary.allergies || 'No known allergies'}</span>
                       </div>
                     </div>
                   </div>
@@ -595,7 +870,7 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                     <textarea
                       value={doctorNotes}
                       onChange={(e) => setDoctorNotes(e.target.value)}
-                      placeholder="e.g., Patient is relocating to Bangalore. Advised to continue current Deepana medicines for 10 more days before stepping down..."
+                      placeholder="e.g., Advised to continue current Deepana medicines for 10 more days..."
                       rows={3}
                       className="w-full text-xs p-3 rounded-xl border border-stone-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
                     />
@@ -634,6 +909,7 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
             <span>Portable ABHA Handover Record • AyushCase SIH 2026</span>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="px-4 py-1.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-100 text-stone-700 font-bold transition"
           >

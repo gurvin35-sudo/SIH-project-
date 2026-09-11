@@ -24,6 +24,7 @@ import { formatDate, formatABHA, getDoshaColor } from '@/lib/utils';
 import { DIET_PRESETS } from '@/lib/ayush-data';
 import AIPatientSummaryCard from '@/components/AIPatientSummaryCard';
 import AIPatientSummaryModal from '@/components/AIPatientSummaryModal';
+import SmartRecordDigitizer from '@/components/SmartRecordDigitizer';
 
 export default function PatientPortalPage() {
   const params = useParams();
@@ -33,6 +34,19 @@ export default function PatientPortalPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
+
+  const handleDocumentSaved = (newDoc) => {
+    if (!newDoc) return;
+    setPatient((prev) => {
+      if (!prev) return prev;
+      const existing = prev.documents || [];
+      const filtered = existing.filter((d) => d.id !== newDoc.id && d.title !== newDoc.title);
+      return {
+        ...prev,
+        documents: [newDoc, ...filtered],
+      };
+    });
+  };
 
   useEffect(() => {
     async function loadPatientPortalData() {
@@ -210,6 +224,53 @@ export default function PatientPortalPage() {
       {/* AI Doctor Handover & Portable Medical Passport Card */}
       <AIPatientSummaryCard patient={patient} isPatientPortal={true} />
 
+      {/* Submitted Pre-Consultation AI Summary */}
+      {patient.chiefComplaint && (
+        <div className="bg-white rounded-3xl border border-stone-200 p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-stone-100 pb-3 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-sm font-extrabold text-stone-900 uppercase tracking-wide">
+                Your Submitted Pre-Consultation AI Health Summary
+              </h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSummaryModalOpen(true)}
+              className="text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 transition flex items-center gap-1 shadow-2xs"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+              <span>View Full Passport & OCR Popup</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div className="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
+              <span className="font-bold text-stone-400 text-[10px] uppercase block">Chief Symptoms</span>
+              <p className="font-bold text-stone-900">{patient.chiefComplaint}</p>
+              <p className="text-stone-600 text-[11px]">Duration: {patient.duration || 'Recent'}</p>
+              {patient.hpi && <p className="text-stone-700 text-[11px] mt-1">{patient.hpi}</p>}
+            </div>
+
+            <div className="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
+              <span className="font-bold text-stone-400 text-[10px] uppercase block">History & Allergies</span>
+              <p className="text-stone-800 text-[11px]"><strong>Past:</strong> {patient.pastMedicalHistory || 'None'}</p>
+              <p className="text-stone-800 text-[11px]"><strong>Current Medicines:</strong> {patient.currentMedicines || 'None'}</p>
+              <p className="text-rose-700 text-[11px] font-bold">Allergies: {patient.allergies || 'None'}</p>
+            </div>
+
+            <div className="p-3.5 bg-emerald-50/70 rounded-xl border border-emerald-200 space-y-1 sm:col-span-2">
+              <span className="font-bold text-emerald-900 text-[10px] uppercase block">Ayurvedic Digestion & Constitution</span>
+              <div className="flex flex-wrap gap-4 text-stone-800 text-[11px]">
+                <span><strong>Agni (Digestive Fire):</strong> {patient.ayushAgni || 'Samagni'}</span>
+                <span><strong>Koshta (Bowel Nature):</strong> {patient.ayushKoshta || 'Madhyama'}</span>
+                <span><strong>Lifestyle / Routine:</strong> {patient.personalHistory || 'Regular'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Start New Assessment or Update Records Callout */}
       <div className="bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-teal-500/10 rounded-3xl border border-amber-300/60 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
         <div className="space-y-1 text-center sm:text-left">
@@ -236,6 +297,13 @@ export default function PatientPortalPage() {
         </Link>
       </div>
 
+      {/* Smart Record Digitization Section */}
+      <SmartRecordDigitizer
+        patientId={patient.id}
+        patientName={patient.name}
+        onDocumentSaved={handleDocumentSaved}
+      />
+
       {/* Digitized Medical Documents & OCR Reports */}
       {patient.documents && patient.documents.length > 0 && (
         <div className="bg-white rounded-3xl border border-stone-200 p-6 shadow-xs space-y-4">
@@ -243,7 +311,7 @@ export default function PatientPortalPage() {
             <div className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-emerald-700" />
               <h2 className="text-sm font-bold text-stone-900 uppercase tracking-wide">
-                Your Digitized Medical Documents & OCR Extractions ({patient.documents.length})
+                Your Digitized Medical Documents & Extractions ({patient.documents.length})
               </h2>
             </div>
           </div>
@@ -257,20 +325,63 @@ export default function PatientPortalPage() {
                 }
               } catch (e) {}
 
+              const meds = extracted.medicines || [];
+              const labs = extracted.labValues || [];
+
               return (
                 <div
                   key={doc.id}
-                  className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2"
+                  className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2.5 hover:border-emerald-300 transition"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
                       {doc.docType}
                     </span>
                     <span className="text-[10px] text-stone-400">{formatDate(doc.docDate)}</span>
                   </div>
-                  <h4 className="font-bold text-xs text-stone-900">{doc.title}</h4>
+
+                  <div>
+                    <h4 className="font-bold text-xs text-stone-900">{doc.title}</h4>
+                    {extracted.ayushSystem && extracted.ayushSystem !== 'Not detected' && (
+                      <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded mr-1">
+                        System: {extracted.ayushSystem}
+                      </span>
+                    )}
+                    {extracted.doctor && extracted.doctor !== 'Not detected' && (
+                      <span className="text-[10px] text-stone-500">
+                        • {extracted.doctor}
+                      </span>
+                    )}
+                  </div>
+
+                  {extracted.diagnosis && extracted.diagnosis !== 'Not detected' && (
+                    <div className="text-[11px] text-emerald-950 font-medium bg-white p-2 rounded-xl border border-stone-200">
+                      <span className="font-bold text-stone-600">Diagnosis:</span> {extracted.diagnosis}
+                    </div>
+                  )}
+
+                  {meds.length > 0 && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-stone-400 block">
+                        Prescribed Medicines ({meds.length}):
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {meds.map((m, mIdx) => (
+                          <span
+                            key={mIdx}
+                            className="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-white border border-stone-200 text-stone-700"
+                          >
+                            💊 {m.name} {m.dosage && m.dosage !== 'Not detected' ? `(${m.dosage})` : ''}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {doc.summary && (
-                    <p className="text-[11px] text-stone-600 italic">"{doc.summary}"</p>
+                    <p className="text-[11px] text-stone-600 italic leading-relaxed">
+                      "{doc.summary}"
+                    </p>
                   )}
                 </div>
               );
@@ -418,6 +529,7 @@ export default function PatientPortalPage() {
         isOpen={summaryModalOpen}
         onClose={() => setSummaryModalOpen(false)}
         isPatientPortal={true}
+        initialTab="intake_ocr"
       />
     </div>
   );

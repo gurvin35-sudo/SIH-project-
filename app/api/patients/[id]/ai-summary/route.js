@@ -16,6 +16,9 @@ export async function GET(request, { params }) {
         cases: {
           orderBy: { visitDate: 'desc' },
         },
+        documents: {
+          orderBy: { docDate: 'desc' },
+        },
       },
     });
 
@@ -48,6 +51,9 @@ export async function POST(request, { params }) {
       include: {
         cases: {
           orderBy: { visitDate: 'desc' },
+        },
+        documents: {
+          orderBy: { docDate: 'desc' },
         },
       },
     });

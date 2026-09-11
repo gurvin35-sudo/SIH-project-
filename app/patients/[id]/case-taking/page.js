@@ -20,7 +20,14 @@ import {
   Loader2,
   ShieldCheck,
   ChevronRight,
-  Info
+  Info,
+  Download,
+  Check,
+  X,
+  FileText,
+  Layers,
+  Eye,
+  BookOpen
 } from 'lucide-react';
 import {
   PRAKRITI_QUESTIONS,
@@ -45,6 +52,13 @@ export default function CaseTakingPage() {
   const [activeTab, setActiveTab] = useState('chief_complaint');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  
+  // Digitized Prescriptions Import Modal State
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [selectedImportMeds, setSelectedImportMeds] = useState({});
+  const [importIncludeDiet, setImportIncludeDiet] = useState(true);
+  const [importIncludePanchakarma, setImportIncludePanchakarma] = useState(true);
+  const [importSuccessMsg, setImportSuccessMsg] = useState('');
 
   // Form State
   const [formData, setFormData] = useState({
@@ -144,6 +158,151 @@ export default function CaseTakingPage() {
       loadPatient();
     }
   }, [params.id]);
+
+  // Extract all medications and dietary/panchakarma data from patient's digitized OCR documents
+  const digitizedDocsWithMeds = React.useMemo(() => {
+    if (!patient?.documents) return [];
+    return patient.documents
+      .map((doc, dIdx) => {
+        let data = {};
+        try {
+          if (doc.extractedData) {
+            data = typeof doc.extractedData === 'string' ? JSON.parse(doc.extractedData) : doc.extractedData;
+          }
+        } catch (e) {
+          data = {};
+        }
+        const meds = data.medications || data.medicines || [];
+        return {
+          docId: doc.id || `doc-${dIdx}`,
+          docTitle: doc.title || 'Medical Document',
+          docDate: doc.docDate,
+          ayushSystem: data.ayushSystem || doc.docType || 'Prescription',
+          doctor: data.doctor,
+          diagnosis: data.diagnosis,
+          pathya: data.pathya || data.pathyaDiet,
+          apathya: data.apathya || data.apathyaDiet,
+          panchakarma: data.procedures || data.panchakarmaAdvice || data.treatment,
+          meds: meds.map((m, mIdx) => ({
+            id: `${doc.id || dIdx}-med-${mIdx}`,
+            name: m.name || '',
+            form: m.form || 'Vati / Gutika (Tablet)',
+            dose: m.dose || m.dosage || '',
+            timing: m.timing || '',
+            anupana: m.anupana || '',
+            duration: m.duration || '14 days',
+            route: m.route || 'Oral',
+            docTitle: doc.title || 'Prescription',
+          })),
+        };
+      })
+      .filter((d) => d.meds.length > 0);
+  }, [patient?.documents]);
+
+  const totalDigitizedMedsCount = digitizedDocsWithMeds.reduce((acc, d) => acc + d.meds.length, 0);
+
+  const handleOpenImportModal = () => {
+    const initialSelection = {};
+    digitizedDocsWithMeds.forEach((docGroup) => {
+      docGroup.meds.forEach((med) => {
+        initialSelection[med.id] = true;
+      });
+    });
+    setSelectedImportMeds(initialSelection);
+    setImportModalOpen(true);
+  };
+
+  const handleToggleMed = (medId) => {
+    setSelectedImportMeds((prev) => ({
+      ...prev,
+      [medId]: !prev[medId],
+    }));
+  };
+
+  const handleToggleSelectAll = () => {
+    const allSelected = digitizedDocsWithMeds.every((docGroup) =>
+      docGroup.meds.every((m) => selectedImportMeds[m.id])
+    );
+    const nextSelection = {};
+    digitizedDocsWithMeds.forEach((docGroup) => {
+      docGroup.meds.forEach((med) => {
+        nextSelection[med.id] = !allSelected;
+      });
+    });
+    setSelectedImportMeds(nextSelection);
+  };
+
+  const handleConfirmImport = () => {
+    const medsToAdd = [];
+    let importedPathya = '';
+    let importedApathya = '';
+    let importedPanchakarma = '';
+
+    digitizedDocsWithMeds.forEach((docGroup) => {
+      docGroup.meds.forEach((med) => {
+        if (selectedImportMeds[med.id]) {
+          medsToAdd.push({
+            name: med.name,
+            form: med.form || 'Vati / Gutika (Tablet)',
+            dose: med.dose || '1-2 tablets',
+            anupana: med.anupana || 'Warm water (Ushnodaka)',
+            timing: med.timing || 'Twice daily after food (Adhahbhakta)',
+            duration: med.duration || '14 days',
+          });
+        }
+      });
+      if (importIncludeDiet) {
+        if (docGroup.pathya && !importedPathya.includes(docGroup.pathya)) {
+          importedPathya = importedPathya ? `${importedPathya}, ${docGroup.pathya}` : docGroup.pathya;
+        }
+        if (docGroup.apathya && !importedApathya.includes(docGroup.apathya)) {
+          importedApathya = importedApathya ? `${importedApathya}, ${docGroup.apathya}` : docGroup.apathya;
+        }
+      }
+      if (importIncludePanchakarma && docGroup.panchakarma) {
+        if (!importedPanchakarma.includes(docGroup.panchakarma)) {
+          importedPanchakarma = importedPanchakarma ? `${importedPanchakarma}, ${docGroup.panchakarma}` : docGroup.panchakarma;
+        }
+      }
+    });
+
+    if (medsToAdd.length > 0) {
+      setFormData((prev) => {
+        // If current prescription has only 1 empty or default dummy item, replace it; else append
+        const isDefaultDummy =
+          prev.prescription.length === 1 &&
+          prev.prescription[0].name === 'Triphala Churna' &&
+          prev.prescription[0].dose === '3-5g';
+
+        const nextPrescription = isDefaultDummy ? medsToAdd : [...prev.prescription, ...medsToAdd];
+
+        return {
+          ...prev,
+          prescription: nextPrescription,
+          pathyaDiet: importedPathya
+            ? prev.pathyaDiet
+              ? `${prev.pathyaDiet}\n${importedPathya}`
+              : importedPathya
+            : prev.pathyaDiet,
+          apathyaDiet: importedApathya
+            ? prev.apathyaDiet
+              ? `${prev.apathyaDiet}\n${importedApathya}`
+              : importedApathya
+            : prev.apathyaDiet,
+          panchakarmaAdvice: importedPanchakarma
+            ? prev.panchakarmaAdvice
+              ? `${prev.panchakarmaAdvice}, ${importedPanchakarma}`
+              : importedPanchakarma
+            : prev.panchakarmaAdvice,
+        };
+      });
+      setImportSuccessMsg(
+        `Successfully imported ${medsToAdd.length} medication${medsToAdd.length > 1 ? 's' : ''} from digitized records!`
+      );
+      setTimeout(() => setImportSuccessMsg(''), 4500);
+    }
+    setImportModalOpen(false);
+  };
 
   // Handle Prakriti Option Selection & Auto-Score Calculation
   const handlePrakritiSelect = (questionId, option) => {
@@ -933,21 +1092,53 @@ export default function CaseTakingPage() {
         {/* ================= TAB 5: CHIKITSA & PRESCRIPTION ================= */}
         {activeTab === 'prescription' && (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
-                <Pill className="w-5 h-5 text-emerald-600" />
-                <span>{t('tabPrescription')}</span>
-              </h2>
-              <p className="text-xs text-stone-500 mt-0.5">
-                Prescribe Ayurvedic formulations with Anupana, recommend Panchakarma, and specify Pathya/Apathya.
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-stone-100">
+              <div>
+                <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                  <Pill className="w-5 h-5 text-emerald-600" />
+                  <span>{t('tabPrescription')}</span>
+                </h2>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  Prescribe Ayurvedic formulations with Anupana, recommend Panchakarma, and specify Pathya/Apathya.
+                </p>
+              </div>
+
+              {/* Digitized Prescriptions 1-Click Import CTA */}
+              {digitizedDocsWithMeds.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleOpenImportModal}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-2xs transition transform hover:-translate-y-0.5 self-start sm:self-auto"
+                >
+                  <Download className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>Import from Digitized Records</span>
+                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center shadow-xs">
+                    {totalDigitizedMedsCount}
+                  </span>
+                </button>
+              )}
             </div>
+
+            {/* Success Toast / Notice */}
+            {importSuccessMsg && (
+              <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-300 text-xs font-bold text-emerald-900 flex items-center gap-2 animate-in fade-in">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{importSuccessMsg}</span>
+              </div>
+            )}
 
             {/* Prescription Builder */}
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-stone-800">
-                {t('prescriptionLabel')} (Aushadha Sevana)
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-stone-800">
+                  {t('prescriptionLabel')} (Aushadha Sevana)
+                </label>
+                {digitizedDocsWithMeds.length > 0 && (
+                  <span className="text-[11px] text-stone-500">
+                    💡 {totalDigitizedMedsCount} medication{totalDigitizedMedsCount > 1 ? 's' : ''} available to import from uploaded records
+                  </span>
+                )}
+              </div>
               <PrescriptionBuilder
                 medicines={formData.prescription}
                 onChange={(meds) => setFormData({ ...formData, prescription: meds })}
@@ -1078,6 +1269,196 @@ export default function CaseTakingPage() {
           </div>
         )}
       </div>
+
+      {/* ================= DIGITIZED PRESCRIPTIONS IMPORT MODAL ================= */}
+      {importModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-2xl w-full border border-stone-200 shadow-2xl overflow-hidden flex flex-col max-h-[88vh] animate-in zoom-in-95">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-emerald-800 to-stone-900 text-white p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-emerald-300">
+                  <Download className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold">Import Digitized Prescriptions</h3>
+                  <p className="text-xs text-emerald-200/80">
+                    Select verified medications from {patient?.name}'s uploaded medical records
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setImportModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Selection Toolbar */}
+            <div className="p-4 bg-stone-50 border-b border-stone-200 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleToggleSelectAll}
+                  className="px-3 py-1.5 bg-white border border-stone-300 rounded-lg hover:bg-stone-100 font-semibold text-stone-700 transition"
+                >
+                  {digitizedDocsWithMeds.every((dg) => dg.meds.every((m) => selectedImportMeds[m.id]))
+                    ? 'Deselect All'
+                    : 'Select All'}
+                </button>
+                <span className="text-stone-500 font-medium">
+                  {Object.values(selectedImportMeds).filter(Boolean).length} of {totalDigitizedMedsCount} medications selected
+                </span>
+              </div>
+              <span className="text-[11px] text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full font-bold">
+                {digitizedDocsWithMeds.length} Document{digitizedDocsWithMeds.length > 1 ? 's' : ''} Found
+              </span>
+            </div>
+
+            {/* Scrollable Medicines List */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-5">
+              {digitizedDocsWithMeds.map((docGroup) => (
+                <div
+                  key={docGroup.docId}
+                  className="rounded-2xl border border-stone-200 bg-stone-50/50 p-4 space-y-3"
+                >
+                  <div className="flex items-center justify-between border-b border-stone-200/70 pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                        {docGroup.ayushSystem}
+                      </span>
+                      <span className="text-xs font-bold text-stone-900">{docGroup.docTitle}</span>
+                    </div>
+                    <span className="text-[11px] text-stone-400">
+                      {docGroup.docDate ? formatDate(docGroup.docDate) : 'Uploaded Record'}
+                    </span>
+                  </div>
+
+                  {docGroup.diagnosis && (
+                    <div className="text-[11px] text-stone-600 bg-white px-2.5 py-1.5 rounded-lg border border-stone-200">
+                      <strong>Diagnosis:</strong> {docGroup.diagnosis}
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    {docGroup.meds.map((med) => {
+                      const isSelected = !!selectedImportMeds[med.id];
+                      return (
+                        <div
+                          key={med.id}
+                          onClick={() => handleToggleMed(med.id)}
+                          className={`p-3 rounded-xl border transition cursor-pointer flex items-start gap-3 ${
+                            isSelected
+                              ? 'bg-emerald-50/90 border-emerald-400 shadow-2xs'
+                              : 'bg-white border-stone-200 hover:border-stone-300 opacity-70'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleToggleMed(med.id)}
+                            className="mt-1 w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-xs text-stone-900">{med.name}</span>
+                              {med.form && (
+                                <span className="text-[10px] px-2 py-0.5 bg-emerald-100/70 text-emerald-900 rounded font-semibold">
+                                  {med.form}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-2 text-[11px] text-stone-600 mt-1">
+                              {med.dose && (
+                                <span className="bg-stone-100 px-1.5 py-0.5 rounded">
+                                  <strong>Dose:</strong> {med.dose}
+                                </span>
+                              )}
+                              {med.timing && (
+                                <span className="bg-stone-100 px-1.5 py-0.5 rounded">
+                                  <strong>Timing:</strong> {med.timing}
+                                </span>
+                              )}
+                              {med.anupana && (
+                                <span className="bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded">
+                                  🥛 <strong>Anupana:</strong> {med.anupana}
+                                </span>
+                              )}
+                              {med.duration && (
+                                <span className="bg-stone-100 px-1.5 py-0.5 rounded">
+                                  ⏱️ {med.duration}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {/* Extra Import Options */}
+              <div className="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-2 text-xs">
+                <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">
+                  Additional Digitized Data:
+                </span>
+                <label className="flex items-center gap-2 cursor-pointer text-stone-800">
+                  <input
+                    type="checkbox"
+                    checked={importIncludeDiet}
+                    onChange={(e) => setImportIncludeDiet(e.target.checked)}
+                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                  />
+                  <span>Import dietary guidelines (Pathya / Apathya) if present</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-stone-800">
+                  <input
+                    type="checkbox"
+                    checked={importIncludePanchakarma}
+                    onChange={(e) => setImportIncludePanchakarma(e.target.checked)}
+                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500"
+                  />
+                  <span>Import Panchakarma & procedures if present</span>
+                </label>
+              </div>
+
+              {/* Medical Safety Disclaimer */}
+              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                <div>
+                  <strong>Doctor Verification Required:</strong> AI & OCR extracted information must be clinically verified against the patient's original physical records before finalizing.
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-stone-50 border-t border-stone-200 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setImportModalOpen(false)}
+                className="px-4 py-2 border border-stone-300 text-stone-700 text-xs font-semibold rounded-xl hover:bg-stone-100 transition"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmImport}
+                disabled={Object.values(selectedImportMeds).filter(Boolean).length === 0}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs transition"
+              >
+                <Download className="w-4 h-4" />
+                <span>
+                  Import Selected ({Object.values(selectedImportMeds).filter(Boolean).length}) Medications
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

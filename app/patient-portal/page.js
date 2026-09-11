@@ -19,6 +19,7 @@ import {
   Loader2,
   Mic,
   MicOff,
+  Volume2,
   Send,
   Calendar,
   Clock,
@@ -29,15 +30,18 @@ import {
   Plus,
   Trash2,
   Eye,
-  Check
+  Check,
+  X
 } from 'lucide-react';
 import { formatABHA, formatDate } from '@/lib/utils';
 import VoiceInputButton from '@/components/VoiceInputButton';
+import SmartRecordDigitizer from '@/components/SmartRecordDigitizer';
+import AIPatientSummaryModal from '@/components/AIPatientSummaryModal';
 
 const STEPS = [
   { id: 1, title: 'Profile & Consent', titleHi: 'विवरण एवं सहमति' },
   { id: 2, title: 'AI Health Interview', titleHi: 'एआई स्वास्थ्य संवाद' },
-  { id: 3, title: 'Upload & OCR Records', titleHi: 'दस्तावेज़ डिजिटलीकरण' },
+  { id: 3, title: 'Smart Record Digitization', titleHi: 'स्मार्ट दस्तावेज़ डिजिटलीकरण' },
   { id: 4, title: 'Clinical Summary', titleHi: 'क्लिनिकल सारांश' },
   { id: 5, title: 'Handover Complete', titleHi: 'चिकित्सक को प्रेषित' },
 ];
@@ -86,32 +90,16 @@ export default function PatientPortalWizardPage() {
   const [activeRedFlag, setActiveRedFlag] = useState(null);
   const chatBottomRef = useRef(null);
 
-  // Step 3: Medical Documents & OCR
+  // Step 3: Digitized Medical Documents
   const [uploadedDocs, setUploadedDocs] = useState([]);
-  const [isOcrProcessing, setIsOcrProcessing] = useState(false);
-  const [samplePresets, setSamplePresets] = useState([]);
-  const [selectedDocPreview, setSelectedDocPreview] = useState(null);
 
   // Step 4: Generated Summary & Handover
   const [generatedSummary, setGeneratedSummary] = useState(null);
   const [isSubmittingToDoctor, setIsSubmittingToDoctor] = useState(false);
   const [savedPatientId, setSavedPatientId] = useState(null);
-
-  // Load OCR Sample Presets on Mount
-  useEffect(() => {
-    async function loadPresets() {
-      try {
-        const res = await fetch('/api/ai/ocr-extract');
-        if (res.ok) {
-          const data = await res.json();
-          setSamplePresets(data.presets || []);
-        }
-      } catch (e) {
-        console.error('Failed to load presets:', e);
-      }
-    }
-    loadPresets();
-  }, []);
+  const [summaryModalOpen, setSummaryModalOpen] = useState(false);
+  const [showCelebrationPopup, setShowCelebrationPopup] = useState(false);
+  const [isSimulatingVoice, setIsSimulatingVoice] = useState(false);
 
   // Initialize AI Interview when moving to Step 2
   useEffect(() => {
@@ -142,6 +130,74 @@ export default function PatientPortalWizardPage() {
       allergies: 'None reported',
       consentGiven: true,
     });
+  };
+
+  // Demo Voice Audio Simulation (Speaks and transcribes realistic clinical input)
+  const handleDemoVoiceSpeak = (customText = null) => {
+    if (isAiTyping || isSimulatingVoice) return;
+
+    const isHi = language === 'hi';
+    let textToSpeak = customText;
+
+    if (!textToSpeak) {
+      if (interviewStage === 'chief_complaint') {
+        textToSpeak = isHi
+          ? 'डॉक्टर साहब, मुझे पिछले 3 महीनों से दोनों घुटनों में सुबह-सुबह बहुत दर्द और जकड़न रहती है।'
+          : 'Doctor, I have been experiencing severe knee joint pain and morning stiffness for the past 3 months.';
+      } else if (interviewStage === 'duration_onset' || interviewStage === 'hpi') {
+        textToSpeak = isHi
+          ? 'यह दर्द ठंड के मौसम में और सीढ़ियां चढ़ते समय बढ़ जाता है, साथ ही जोड़ों से कटकट की आवाज आती है।'
+          : 'The pain worsens during cold weather and while climbing stairs, accompanied by cracking sounds in joints.';
+      } else if (interviewStage === 'past_medical' || interviewStage === 'past_medical_history') {
+        textToSpeak = isHi
+          ? 'पहले कोई गंभीर बीमारी या सर्जरी नहीं हुई है। कोई ज्ञात दवा एलर्जी नहीं है।'
+          : 'No past major surgical history or chronic illness. No known drug allergies.';
+      } else if (interviewStage === 'current_medications' || interviewStage === 'medicines') {
+        textToSpeak = isHi
+          ? 'दर्द अधिक होने पर कभी-कभी पैरासिटामोल लेता हूँ, कोई नियमित दवा नहीं चल रही।'
+          : 'I occasionally take paracetamol when joint pain is severe. No continuous allopathic medications.';
+      } else if (interviewStage === 'lifestyle_diet' || interviewStage === 'agni_koshta') {
+        textToSpeak = isHi
+          ? 'शुद्ध शाकाहारी भोजन लेता हूँ, भूख अनियमित रहती है और मल सूखा व कड़ा होता है।'
+          : 'Vegetarian diet with irregular appetite (Vishamagni) and occasional constipation (Krura Koshta).';
+      } else {
+        textToSpeak = isHi
+          ? 'मुझे जोड़ों में दर्द और सुबह के समय जकड़न की समस्या है।'
+          : 'I am experiencing joint discomfort, sluggish digestion, and morning stiffness.';
+      }
+    }
+
+    setIsSimulatingVoice(true);
+    setCurrentInput('');
+
+    // Play Browser Speech Audio Synthesis (Patient Voice)
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.lang = isHi ? 'hi-IN' : 'en-IN';
+        utterance.rate = 0.95;
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        console.warn('SpeechSynthesis error:', e);
+      }
+    }
+
+    // Typewriter transcription effect into input box
+    let charIdx = 0;
+    const interval = setInterval(() => {
+      charIdx += 2;
+      if (charIdx <= textToSpeak.length) {
+        setCurrentInput(textToSpeak.slice(0, charIdx));
+      } else {
+        clearInterval(interval);
+        setCurrentInput(textToSpeak);
+        setTimeout(() => {
+          setIsSimulatingVoice(false);
+          handleSendMessage(textToSpeak);
+        }, 400);
+      }
+    }, 30);
   };
 
   // Start AI Interview
@@ -240,61 +296,6 @@ export default function PatientPortalWizardPage() {
       console.error(err);
     } finally {
       setIsAiTyping(false);
-    }
-  };
-
-  // Quick Preset Sample Reports for OCR
-  const handleLoadSamplePreset = async (presetId) => {
-    setIsOcrProcessing(true);
-    try {
-      const res = await fetch('/api/ai/ocr-extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ presetId }),
-      });
-      const data = await res.json();
-      if (data.success && data.document) {
-        // Prevent duplicate
-        if (!uploadedDocs.some((d) => d.title === data.document.title)) {
-          setUploadedDocs((prev) => [...prev, data.document]);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsOcrProcessing(false);
-    }
-  };
-
-  // Handle Custom File Upload Simulation
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsOcrProcessing(true);
-    try {
-      const simulatedText = `Extracted text from ${file.name}:
-Patient: ${patientData.name || 'Patient'}
-Date: ${new Date().toISOString().slice(0, 10)}
-Clinical Findings: Routine diagnostic checkup.
-Prescription / Labs: Fasting Blood Sugar: 104 mg/dL (HIGH), HbA1c: 6.0%, Tab. Pan-40 OD x 7 days.`;
-
-      const res = await fetch('/api/ai/ocr-extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileName: file.name,
-          rawText: simulatedText
-        }),
-      });
-      const data = await res.json();
-      if (data.success && data.document) {
-        setUploadedDocs((prev) => [...prev, data.document]);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsOcrProcessing(false);
     }
   };
 
@@ -408,6 +409,7 @@ Prescription / Labs: Fasting Blood Sugar: 104 mg/dL (HIGH), HbA1c: 6.0%, Tab. Pa
       if (data.success) {
         setSavedPatientId(data.patientId);
         setCurrentStep(5);
+        setShowCelebrationPopup(true);
       } else {
         alert(data.error || 'Failed to submit pre-consultation record');
       }
@@ -768,7 +770,87 @@ Prescription / Labs: Fasting Blood Sugar: 104 mg/dL (HIGH), HbA1c: 6.0%, Tab. Pa
             </div>
 
             {/* Chat Input & Voice Controller */}
-            <div className="p-3.5 bg-white border-t border-stone-200 space-y-2">
+            <div className="p-3.5 bg-white border-t border-stone-200 space-y-2.5">
+              {/* Active Voice Audio Equalizer Bar when Simulating */}
+              {isSimulatingVoice && (
+                <div className="flex items-center justify-between bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl px-3.5 py-2 text-xs shadow-md shadow-amber-600/20 animate-pulse">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-1">
+                      <span className="w-1.5 h-3.5 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1.5 h-6 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1.5 h-4 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span className="w-1.5 h-5 bg-white rounded-full animate-bounce" style={{ animationDelay: '450ms' }} />
+                    </div>
+                    <span className="font-extrabold tracking-wide">
+                      🎙️ {language === 'hi' ? 'रोगी की आवाज़ बोली जा रही है (ऑडियो ट्रांसक्रिप्शन)...' : 'Patient Voice Transcribing Live Audio...'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full font-mono font-bold">
+                    Audio Active
+                  </span>
+                </div>
+              )}
+
+              {/* Quick Clickable Clinical Voice Chips */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] scrollbar-none">
+                <span className="text-[10px] font-bold text-stone-400 shrink-0 uppercase tracking-wider">
+                  {language === 'hi' ? 'त्वरित बोलें:' : 'Quick Voice:'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleDemoVoiceSpeak(
+                      language === 'hi'
+                        ? 'मुझे पिछले 3 महीनों से दोनों घुटनों में सुबह-सुबह तेज दर्द और जकड़न रहती है।'
+                        : 'I have severe pain and morning stiffness in both my knee joints for the past 3 months.'
+                    )
+                  }
+                  className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition whitespace-nowrap shrink-0 font-medium active:scale-95"
+                >
+                  🎙️ {language === 'hi' ? 'घुटनों में दर्द (Knee Pain)' : 'Knee Joint Pain'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleDemoVoiceSpeak(
+                      language === 'hi'
+                        ? 'सीने में जलन और खट्टी डकारें आती हैं, खासकर रात में खाना खाने के बाद।'
+                        : 'I experience burning sensation in chest and sour belching, especially after late meals.'
+                    )
+                  }
+                  className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition whitespace-nowrap shrink-0 font-medium active:scale-95"
+                >
+                  🎙️ {language === 'hi' ? 'एसिडिटी व जलन (Acidity)' : 'Acidity & Heartburn'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleDemoVoiceSpeak(
+                      language === 'hi'
+                        ? 'भूख बहुत कम लगती है, पेट फूला रहता है और कब्ज की समस्या रहती है।'
+                        : 'I suffer from sluggish digestion, gas bloating, and irregular hard stools.'
+                    )
+                  }
+                  className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition whitespace-nowrap shrink-0 font-medium active:scale-95"
+                >
+                  🎙️ {language === 'hi' ? 'पाचन व कब्ज (Digestion)' : 'Sluggish Digestion'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleDemoVoiceSpeak(
+                      language === 'hi'
+                        ? 'पहले कोई सर्जरी या गंभीर बीमारी नहीं हुई है, कोई एलर्जी नहीं है।'
+                        : 'No prior major surgeries or chronic illnesses. No known drug allergies.'
+                    )
+                  }
+                  className="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 border border-stone-200 hover:bg-stone-200 transition whitespace-nowrap shrink-0 font-medium active:scale-95"
+                >
+                  🎙️ {language === 'hi' ? 'कोई सर्जरी नहीं (Clear)' : 'No Surgeries'}
+                </button>
+              </div>
+
+              {/* Main Input Form with Voice Mic & Demo Voice Button */}
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -780,15 +862,16 @@ Prescription / Labs: Fasting Blood Sugar: 104 mg/dL (HIGH), HbA1c: 6.0%, Tab. Pa
                   type="text"
                   value={currentInput}
                   onChange={(e) => setCurrentInput(e.target.value)}
+                  disabled={isSimulatingVoice || isAiTyping}
                   placeholder={
                     language === 'hi'
-                      ? 'यहाँ उत्तर टाइप करें या माइक्रोफ़ोन बटन दबाकर बोलें...'
-                      : 'Type your answer here or speak via microphone...'
+                      ? 'यहाँ उत्तर टाइप करें या माइक दबाकर बोलें...'
+                      : 'Type your response or speak via microphone...'
                   }
-                  className="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="flex-1 p-2.5 rounded-xl border border-stone-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium bg-stone-50/60 focus:bg-white"
                 />
 
-                {/* Voice Input Button */}
+                {/* Real Voice Input Button (Live Web Speech API) */}
                 <VoiceInputButton
                   onTranscript={(transcript) => {
                     setCurrentInput(transcript);
@@ -797,10 +880,27 @@ Prescription / Labs: Fasting Blood Sugar: 104 mg/dL (HIGH), HbA1c: 6.0%, Tab. Pa
                   className="shrink-0"
                 />
 
+                {/* Demo Voice Audio Simulator Button for Judges */}
+                <button
+                  type="button"
+                  onClick={() => handleDemoVoiceSpeak()}
+                  disabled={isSimulatingVoice || isAiTyping}
+                  title={
+                    language === 'hi'
+                      ? 'जज को दिखाने हेतु सैंपल वॉइस ऑडियो चलाएं'
+                      : 'Click to simulate patient voice with real audio for judge demonstration'
+                  }
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white transition shrink-0 shadow-md shadow-amber-500/20 active:scale-95 disabled:opacity-50 ring-2 ring-amber-300"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-100 animate-spin" />
+                  <span>{language === 'hi' ? '⚡ वॉइस डेमो' : '⚡ Voice Demo'}</span>
+                </button>
+
+                {/* Send Button */}
                 <button
                   type="submit"
-                  disabled={!currentInput.trim() || isAiTyping}
-                  className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition disabled:opacity-50 shrink-0"
+                  disabled={!currentInput.trim() || isAiTyping || isSimulatingVoice}
+                  className="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition disabled:opacity-50 shrink-0 shadow-xs active:scale-95"
                   title="Send message"
                 >
                   <Send className="w-4 h-4" />
@@ -808,8 +908,8 @@ Prescription / Labs: Fasting Blood Sugar: 104 mg/dL (HIGH), HbA1c: 6.0%, Tab. Pa
               </form>
 
               <div className="flex items-center justify-between text-[10px] text-stone-400 px-1">
-                <span>⚡ {language === 'hi' ? 'बोलकर या टाइप करके उत्तर दें' : 'Speak or type your clinical history'}</span>
-                <span>🔒 {language === 'hi' ? 'एआई निदान नहीं करता, केवल इतिहास एकत्र करता है' : 'AI collects history, does not diagnose'}</span>
+                <span>⚡ {language === 'hi' ? 'लाइव माइक अथवा ⚡ वॉइस डेमो बटन का प्रयोग करें' : 'Speak via microphone or click ⚡ Voice Demo for audio'}</span>
+                <span>🔒 {language === 'hi' ? 'एआई इतिहास संकलन (SIH 2026 आयुष मंत्रालय)' : 'AI Clinical Intake (SIH 2026 Ministry of Ayush)'}</span>
               </div>
             </div>
           </div>
@@ -888,115 +988,46 @@ Prescription / Labs: Fasting Blood Sugar: 104 mg/dL (HIGH), HbA1c: 6.0%, Tab. Pa
         </div>
       )}
 
-      {/* ================= STEP 3: MEDICAL DOCUMENT UPLOAD & OCR ================= */}
+      {/* ================= STEP 3: SMART RECORD DIGITIZATION ================= */}
       {currentStep === 3 && (
-        <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
-            <div>
-              <h2 className="text-lg font-black text-stone-900">
-                {language === 'hi' ? 'पूर्व मेडिकल दस्तावेज़ व रिपोर्ट्स अपलोड' : 'Upload Previous Medical Records (OCR Digitization)'}
-              </h2>
-              <p className="text-xs text-stone-500">
-                {language === 'hi'
-                  ? 'पुरानी दवा के पर्चे, ब्लड टेस्ट, डिस्चार्ज समरी अपलोड करें ताकि एआई उनसे मुख्य जानकारी निकाल सके।'
-                  : 'Upload prescriptions, blood test reports, and discharge summaries for automated OCR entity extraction.'}
-              </p>
-            </div>
+        <div className="space-y-6">
+          {/* Smart Record Digitizer Component */}
+          <SmartRecordDigitizer
+            isWizardMode={true}
+            patientName={patientData.name}
+            onDocumentSaved={(newDoc) => {
+              if (!newDoc) return;
+              setUploadedDocs((prev) => {
+                const filtered = prev.filter((d) => d.id !== newDoc.id && d.title !== newDoc.title);
+                return [...filtered, newDoc];
+              });
+            }}
+          />
 
-            {/* Quick Demo Preset Load Buttons */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] uppercase font-bold text-stone-400">⚡ Demo Presets:</span>
-              <button
-                type="button"
-                onClick={() => handleLoadSamplePreset('sample_lab_1')}
-                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition"
-              >
-                + Lab Report (Lipid/HbA1c)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleLoadSamplePreset('sample_rx_1')}
-                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 transition"
-              >
-                + Prescription (Ortho)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleLoadSamplePreset('sample_discharge_1')}
-                className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 transition"
-              >
-                + Discharge Summary
-              </button>
-            </div>
-          </div>
-
-          {/* Upload Drop Area */}
-          <div className="border-2 border-dashed border-stone-300 hover:border-emerald-500 rounded-3xl p-8 text-center bg-stone-50/50 transition">
-            <div className="max-w-md mx-auto space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto shadow-sm">
-                <Upload className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-sm font-extrabold text-stone-800">
-                  {language === 'hi' ? 'दस्तावेज़ यहाँ अपलोड करें' : 'Drag & drop medical documents or browse'}
+          {/* Uploaded / Digitized Documents Summary List */}
+          {uploadedDocs.length > 0 && (
+            <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 space-y-4">
+              <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                <h3 className="font-extrabold text-xs uppercase tracking-wide text-stone-900 flex items-center gap-2">
+                  <FileCheck2 className="w-4 h-4 text-emerald-600" />
+                  <span>Digitized Documents Ready for Clinical Summary ({uploadedDocs.length})</span>
                 </h3>
-                <p className="text-[11px] text-stone-500 mt-0.5">
-                  Supports Prescriptions, Lab Reports, Discharge Summaries (PDF, PNG, JPG)
-                </p>
               </div>
 
-              <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer shadow-xs transition">
-                <Camera className="w-3.5 h-3.5" />
-                <span>{language === 'hi' ? 'फ़ाइल चुनें / कैमरा' : 'Select Document from Device'}</span>
-                <input
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-              </label>
-            </div>
-          </div>
-
-          {/* OCR Processing Loader */}
-          {isOcrProcessing && (
-            <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-2">
-              <Loader2 className="w-6 h-6 text-emerald-600 animate-spin mx-auto" />
-              <p className="text-xs font-bold text-emerald-950">
-                AI OCR is extracting medicines, lab values, and diagnoses...
-              </p>
-            </div>
-          )}
-
-          {/* Uploaded Documents List */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-xs uppercase tracking-wide text-stone-900 flex items-center gap-2">
-                <FileCheck2 className="w-4 h-4 text-emerald-600" />
-                <span>Digitized Medical Documents ({uploadedDocs.length})</span>
-              </h3>
-            </div>
-
-            {uploadedDocs.length === 0 ? (
-              <div className="p-8 text-center text-xs text-stone-400 bg-stone-50 rounded-2xl border border-stone-200 italic">
-                No documents uploaded yet. You can click the Demo Presets above or upload your records.
-              </div>
-            ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {uploadedDocs.map((doc, idx) => {
                   const data = doc.extractedData || {};
                   const meds = data.medicines || [];
-                  const labs = data.labValues || [];
 
                   return (
                     <div
                       key={doc.id || idx}
-                      className="bg-stone-50/80 rounded-2xl border border-stone-200 p-5 space-y-3 shadow-xs hover:border-emerald-300 transition"
+                      className="bg-stone-50/90 rounded-2xl border border-stone-200 p-5 space-y-2.5 shadow-xs hover:border-emerald-300 transition"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                            {doc.docType}
+                            {data.ayushSystem || doc.docType || 'Prescription'}
                           </span>
                           <h4 className="font-bold text-xs text-stone-900 mt-1">{doc.title}</h4>
                           <span className="text-[10px] text-stone-400">Date: {doc.docDate ? formatDate(doc.docDate) : 'Recent'}</span>
@@ -1004,13 +1035,19 @@ Prescription / Labs: Fasting Blood Sugar: 104 mg/dL (HIGH), HbA1c: 6.0%, Tab. Pa
                         <button
                           type="button"
                           onClick={() => handleRemoveDoc(idx)}
-                          className="p-1 rounded text-stone-400 hover:text-rose-600"
+                          className="p-1 rounded text-stone-400 hover:text-rose-600 transition"
+                          title="Remove document"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
 
-                      {/* Extracted Entities */}
+                      {data.diagnosis && data.diagnosis !== 'Not detected' && (
+                        <div className="text-[11px] text-emerald-950 font-medium bg-white p-2 rounded-xl border border-stone-200">
+                          <span className="font-bold text-stone-600">Diagnosis:</span> {data.diagnosis}
+                        </div>
+                      )}
+
                       {meds.length > 0 && (
                         <div className="space-y-1">
                           <span className="text-[10px] uppercase font-bold text-stone-400 block">
@@ -1022,31 +1059,8 @@ Prescription / Labs: Fasting Blood Sugar: 104 mg/dL (HIGH), HbA1c: 6.0%, Tab. Pa
                                 key={mIdx}
                                 className="text-[11px] px-2 py-0.5 rounded-lg bg-white border border-stone-200 font-medium text-stone-700"
                               >
-                                💊 {m.name} ({m.dose || 'Std'})
+                                💊 {m.name} {m.dosage && m.dosage !== 'Not detected' ? `(${m.dosage})` : ''}
                               </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {labs.length > 0 && (
-                        <div className="space-y-1">
-                          <span className="text-[10px] uppercase font-bold text-stone-400 block">
-                            Extracted Lab Parameters ({labs.length}):
-                          </span>
-                          <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-                            {labs.slice(0, 4).map((l, lIdx) => (
-                              <div
-                                key={lIdx}
-                                className={`p-1.5 rounded-lg border font-medium flex items-center justify-between ${
-                                  l.status === 'HIGH'
-                                    ? 'bg-rose-50 border-rose-200 text-rose-900'
-                                    : 'bg-white border-stone-200 text-stone-700'
-                                }`}
-                              >
-                                <span className="truncate">{l.parameter}</span>
-                                <span className="font-bold shrink-0">{l.value} {l.status === 'HIGH' ? '⚠️' : ''}</span>
-                              </div>
                             ))}
                           </div>
                         </div>
@@ -1061,11 +1075,11 @@ Prescription / Labs: Fasting Blood Sugar: 104 mg/dL (HIGH), HbA1c: 6.0%, Tab. Pa
                   );
                 })}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Action Navigation */}
-          <div className="flex items-center justify-between pt-4 border-t border-stone-100">
+          {/* Step 3 Wizard Navigation */}
+          <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-stone-200 shadow-xs">
             <button
               type="button"
               onClick={() => setCurrentStep(2)}
@@ -1292,23 +1306,187 @@ Prescription / Labs: Fasting Blood Sugar: 104 mg/dL (HIGH), HbA1c: 6.0%, Tab. Pa
         </div>
       )}
 
-      {/* ================= STEP 5: HANDOVER COMPLETED ================= */}
+      {/* ================= STEP 5: HANDOVER COMPLETED & OUTPUT PREVIEW ================= */}
       {currentStep === 5 && (
-        <div className="bg-white rounded-3xl border border-stone-200 shadow-xl p-8 sm:p-12 text-center space-y-6 animate-in zoom-in-95">
-          <div className="w-16 h-16 rounded-3xl bg-emerald-600 text-white flex items-center justify-center mx-auto shadow-xl shadow-emerald-600/30">
-            <CheckCircle2 className="w-10 h-10" />
+        <div className="space-y-6 animate-in zoom-in-95">
+          {/* Header Celebration & Report Ready Card */}
+          <div className="bg-gradient-to-br from-white via-emerald-50/40 to-white rounded-3xl border-2 border-emerald-500/30 shadow-xl p-8 sm:p-10 text-center space-y-5 relative overflow-hidden">
+            <div className="absolute -right-12 -top-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-emerald-600 to-herb text-white flex items-center justify-center mx-auto shadow-xl shadow-emerald-700/30">
+              <CheckCircle2 className="w-10 h-10 text-emerald-100" />
+            </div>
+
+            <div className="max-w-xl mx-auto space-y-2">
+              <span className="text-[11px] font-black uppercase tracking-widest px-3.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 inline-block shadow-2xs">
+                ✨ Pre-Consultation Completed & Sent
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
+                {language === 'hi' ? '🎉 आपका स्वास्थ्य रिकॉर्ड व रिपोर्ट तैयार है!' : '🎉 Your Digital Health Passport & Report is Ready!'}
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-600 leading-relaxed max-w-lg mx-auto">
+                {language === 'hi'
+                  ? 'आपके सभी लक्षण, एआई संवाद और अपलोड किए गए नुस्खे सफलतापूर्वक डिजिटाइज होकर डॉक्टर अनन्या शर्मा के क्लिनिकल कंसोल में सुरक्षित पहुंच गए हैं।'
+                  : 'Your reported symptoms, AI clinical interview, and digitized OCR prescriptions are now active in Dr. Ananya Sharma\'s clinical console and compiled into your portable health passport.'}
+              </p>
+            </div>
+
+            {/* FANCY & ACCESSIBLE CALL-TO-ACTION BUTTONS */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setSummaryModalOpen(true)}
+                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl text-xs sm:text-sm font-black bg-gradient-to-r from-emerald-600 via-herb to-emerald-800 text-white shadow-xl shadow-emerald-700/30 hover:from-emerald-700 hover:to-emerald-900 transition transform hover:-translate-y-0.5 ring-4 ring-emerald-300/30 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-amber-300 animate-spin" />
+                <span>{language === 'hi' ? '✨ मेरा डिजिटल स्वास्थ्य रिपोर्ट व पासपोर्ट देखें (View Report)' : '✨ View My Digital Health Report & Passport (Click to Open) 🚀'}</span>
+              </button>
+
+              {savedPatientId && (
+                <Link
+                  href={`/patient-portal/${savedPatientId}`}
+                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl text-xs font-bold bg-white text-stone-800 border border-stone-200 hover:bg-stone-50 transition shadow-2xs"
+                >
+                  <User className="w-4 h-4 text-emerald-700" />
+                  <span>Go to Patient Dashboard</span>
+                </Link>
+              )}
+            </div>
           </div>
 
-          <div className="max-w-md mx-auto space-y-2">
-            <span className="text-[11px] font-extrabold uppercase px-3 py-1 rounded-full bg-emerald-100 text-emerald-800">
-              Handover Transmitted Successfully
-            </span>
-            <h2 className="text-2xl font-black text-stone-900 tracking-tight">
-              Pre-Consultation Sent to Dr. Ananya Sharma
-            </h2>
-            <p className="text-xs text-stone-600 leading-relaxed">
-              Your digitized medical history, OCR documents, and AI clinical summary are now active in the doctor's clinical console.
-            </p>
+          {/* VISIBLE OUTPUT OF SUBMISSION */}
+          <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 sm:p-8 space-y-6 text-left">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-4 flex-wrap gap-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-stone-900">
+                    Your Submitted Clinical Record & OCR Extraction Summary
+                  </h3>
+                  <p className="text-xs text-stone-500">
+                    Patient: {patientData.name} ({patientData.gender}, {patientData.age} Yrs)
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  Verified in Database
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSummaryModalOpen(true)}
+                  className="text-xs font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200 transition"
+                >
+                  View in Popup ↗
+                </button>
+              </div>
+            </div>
+
+            {/* Submission Details Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+                <span className="font-black text-stone-900 uppercase text-[11px] block">
+                  1. Chief Complaint & Symptoms
+                </span>
+                <p className="text-stone-800 font-semibold">
+                  {collectedHistory.chiefComplaint || 'Generalized discomfort / Joint pain'}
+                </p>
+                <p className="text-stone-600">
+                  <strong>Duration:</strong> {collectedHistory.duration || 'Recent'}
+                </p>
+                {collectedHistory.hpi && (
+                  <p className="text-stone-700 text-[11px]">
+                    <strong>Details:</strong> {collectedHistory.hpi}
+                  </p>
+                )}
+              </div>
+
+              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+                <span className="font-black text-stone-900 uppercase text-[11px] block">
+                  2. Medical History & Allergies
+                </span>
+                <p className="text-stone-800">
+                  <strong>Past Illnesses:</strong> {collectedHistory.pastMedicalHistory || 'None'}
+                </p>
+                <p className="text-stone-800">
+                  <strong>Surgeries:</strong> {collectedHistory.pastSurgicalHistory || 'None'}
+                </p>
+                <p className="text-rose-700 font-bold">
+                  Allergies: {collectedHistory.allergies || 'No known allergies'}
+                </p>
+              </div>
+
+              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+                <span className="font-black text-stone-900 uppercase text-[11px] block">
+                  3. Current Medications & Routine
+                </span>
+                <p className="text-stone-800">
+                  <strong>Active Medicines:</strong> {collectedHistory.currentMedicines || 'None'}
+                </p>
+                <p className="text-stone-800">
+                  <strong>Family History:</strong> {collectedHistory.familyHistory || 'Non-contributory'}
+                </p>
+              </div>
+
+              <div className="p-4 bg-emerald-50/70 rounded-2xl border border-emerald-200 space-y-2">
+                <span className="font-black text-emerald-950 uppercase text-[11px] block">
+                  4. Ayurvedic Constitutional Findings (प्रकृति व अग्नि)
+                </span>
+                <p className="text-stone-800">
+                  <strong>Agni (Digestive Fire):</strong> {collectedHistory.ayushAgni || 'Samagni'}
+                </p>
+                <p className="text-stone-800">
+                  <strong>Koshta (Bowel Nature):</strong> {collectedHistory.ayushKoshta || 'Madhyama'}
+                </p>
+                <p className="text-stone-800 text-[11px]">
+                  <strong>Diet / Lifestyle:</strong> {collectedHistory.personalHistory || 'Standard routine'}
+                </p>
+              </div>
+            </div>
+
+            {/* Digitized Documents List */}
+            {uploadedDocs.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <h4 className="font-extrabold text-xs uppercase text-stone-700 tracking-wider flex items-center gap-1.5">
+                  <FileCheck2 className="w-4 h-4 text-emerald-600" />
+                  <span>Digitized Documents Attached ({uploadedDocs.length})</span>
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {uploadedDocs.map((doc, idx) => {
+                    const data = doc.extractedData || {};
+                    const meds = data.medicines || [];
+                    return (
+                      <div key={idx} className="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-stone-900">{doc.title}</span>
+                          <span className="text-[10px] uppercase font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
+                            {doc.docType}
+                          </span>
+                        </div>
+                        {data.diagnosis && data.diagnosis !== 'Not detected' && (
+                          <div className="text-[11px] text-emerald-900 font-medium">
+                            Diagnosis: {data.diagnosis}
+                          </div>
+                        )}
+                        {meds.length > 0 && (
+                          <div className="flex flex-wrap gap-1 text-[10px]">
+                            {meds.map((m, mIdx) => (
+                              <span key={mIdx} className="bg-white border border-stone-200 px-1.5 py-0.5 rounded text-stone-700 font-medium">
+                                💊 {m.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quick Demo Navigation for SIH Judges */}
@@ -1331,20 +1509,114 @@ Prescription / Labs: Fasting Blood Sugar: 104 mg/dL (HIGH), HbA1c: 6.0%, Tab. Pa
                 <Stethoscope className="w-4 h-4" />
                 <span>Open in Doctor Portal →</span>
               </Link>
-
-              {savedPatientId && (
-                <Link
-                  href={`/patient-portal/${savedPatientId}`}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-white text-stone-700 border border-stone-200 hover:bg-stone-50 transition"
-                >
-                  <User className="w-4 h-4" />
-                  <span>View Patient Health Card</span>
-                </Link>
-              )}
             </div>
           </div>
         </div>
       )}
+
+      {/* ================= FANCY CELEBRATION / REPORT READY POPUP MODAL ================= */}
+      {showCelebrationPopup && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-emerald-200 overflow-hidden relative animate-in zoom-in-95 duration-300">
+            {/* Ambient glowing backdrop */}
+            <div className="absolute -right-16 -top-16 w-48 h-48 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -left-16 -bottom-16 w-48 h-48 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setShowCelebrationPopup(false)}
+              className="absolute right-4 top-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition z-10"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Header / Banner Graphic */}
+            <div className="bg-gradient-to-br from-emerald-800 via-herb to-emerald-950 p-7 text-white text-center space-y-3 relative">
+              <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-emerald-300 flex items-center justify-center mx-auto shadow-inner">
+                <Sparkles className="w-8 h-8 animate-pulse text-amber-300" />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-black tracking-widest px-3 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 inline-block">
+                  ✨ Pre-Consultation Completed
+                </span>
+                <h3 className="text-xl font-black tracking-tight text-white">
+                  {language === 'hi' ? '🎉 आपका स्मार्ट स्वास्थ्य पासपोर्ट व रिपोर्ट तैयार है!' : '🎉 Your Smart Health Passport & Report is Ready!'}
+                </h3>
+              </div>
+              <p className="text-xs text-emerald-100/90 max-w-sm mx-auto leading-relaxed">
+                {language === 'hi'
+                  ? 'आपके सभी लक्षण, एआई संवाद और अपलोड किए गए नुस्खे सफलतापूर्वक डिजिटाइज व प्रोसेस कर लिए गए हैं।'
+                  : 'All your reported symptoms, AI interview insights, and digitized prescription records have been compiled into your official AyushCase Health Passport.'}
+              </p>
+            </div>
+
+            {/* Body Summary Badges */}
+            <div className="p-6 space-y-5">
+              <div className="bg-stone-50 rounded-2xl border border-stone-200 p-4 space-y-2.5 text-xs text-stone-700">
+                <div className="flex items-center gap-2.5 font-bold text-stone-900">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>What is ready inside your report:</span>
+                </div>
+                <ul className="space-y-1.5 pl-6 list-disc text-stone-600 text-[11px]">
+                  <li><strong>AI Clinical Synopsis:</strong> Structured chief complaints & Ayurvedic digestive constitution (अग्नि व कोष्ठ).</li>
+                  <li><strong>Digitized OCR Extractions:</strong> Prescribed formulations, dosages, and lab reports.</li>
+                  <li><strong>Transmitted to Doctor:</strong> Active in Dr. Ananya Sharma's clinic console.</li>
+                </ul>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCelebrationPopup(false);
+                    setSummaryModalOpen(true);
+                  }}
+                  className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-herb to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white font-black text-sm shadow-lg shadow-emerald-700/25 flex items-center justify-center gap-2.5 transition transform hover:-translate-y-0.5 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+                  <span>{language === 'hi' ? '✨ मेरा स्मार्ट स्वास्थ्य पासपोर्ट देखें (View Report)' : '✨ View My Smart Health Report & Passport →'}</span>
+                </button>
+
+                {savedPatientId && (
+                  <Link
+                    href={`/patient-portal/${savedPatientId}`}
+                    onClick={() => setShowCelebrationPopup(false)}
+                    className="w-full py-2.5 px-4 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs flex items-center justify-center gap-2 transition"
+                  >
+                    <User className="w-3.5 h-3.5 text-stone-500" />
+                    <span>{language === 'hi' ? 'रोगी डैशबोर्ड पर जाएं (Patient Dashboard)' : 'Explore Patient Dashboard & Health Card'}</span>
+                  </Link>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowCelebrationPopup(false)}
+                  className="w-full text-center text-[11px] text-stone-400 hover:text-stone-600 font-semibold pt-1 transition"
+                >
+                  {language === 'hi' ? 'बंद करें और सारांश नीचे देखें' : 'Close and view summary below'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Summary & OCR Extraction Modal */}
+      <AIPatientSummaryModal
+        patientId={savedPatientId || patientData.id}
+        patientData={{
+          ...patientData,
+          ...collectedHistory,
+          documents: uploadedDocs,
+        }}
+        isOpen={summaryModalOpen}
+        onClose={() => setSummaryModalOpen(false)}
+        isPatientPortal={true}
+        initialTab="intake_ocr"
+      />
     </div>
   );
 }
