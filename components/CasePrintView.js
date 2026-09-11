@@ -1,14 +1,25 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { Printer, Download, Leaf, FileText, CheckCircle2, ShieldCheck, Loader2 } from 'lucide-react';
-import { formatDate, formatABHA } from '@/lib/utils';
+import { Printer, Download, Leaf, FileText, CheckCircle2, ShieldCheck, Loader2, Copy, Check } from 'lucide-react';
+import { formatDate, formatABHA, formatRxCode } from '@/lib/utils';
 import { useLanguage } from './LanguageContext';
 
 export default function CasePrintView({ caseData, patient, doctor }) {
   const { language } = useLanguage();
   const printRef = useRef(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [copiedRx, setCopiedRx] = useState(false);
+
+  const rxCode = formatRxCode(caseData?.id, caseData?.visitDate);
+
+  const handleCopyRx = () => {
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(rxCode);
+      setCopiedRx(true);
+      setTimeout(() => setCopiedRx(false), 2000);
+    }
+  };
 
   let medicines = [];
   try {
@@ -57,7 +68,7 @@ export default function CasePrintView({ caseData, patient, doctor }) {
         heightLeft -= pageHeight;
       }
 
-      const filename = `AyushCase_${(patient?.name || 'Record').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      const filename = `AyushCase_${rxCode}_${(patient?.name || 'Record').replace(/\s+/g, '_')}.pdf`;
       pdf.save(filename);
     } catch (err) {
       console.error('PDF export failed:', err);
@@ -70,16 +81,27 @@ export default function CasePrintView({ caseData, patient, doctor }) {
   return (
     <div className="space-y-4">
       {/* Top Action Buttons (Hidden when printing) */}
-      <div className="no-print flex items-center justify-between bg-stone-100 p-3 rounded-xl border border-stone-200">
-        <div className="flex items-center gap-2">
+      <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-stone-100 p-3.5 rounded-2xl border border-stone-200">
+        <div className="flex items-center gap-2 flex-wrap">
           <FileText className="w-4 h-4 text-emerald-700" />
-          <span className="text-xs font-bold text-stone-700">Official AYUSH Clinical Record & Prescription</span>
+          <span className="text-xs font-bold text-stone-700">Official AYUSH Prescription</span>
+          <span className="text-[11px] font-mono font-black bg-emerald-700 text-white px-2.5 py-0.5 rounded-lg shadow-2xs">
+            {rxCode}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={handleCopyRx}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 shadow-2xs transition"
+          >
+            {copiedRx ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-stone-500" />}
+            <span>{copiedRx ? 'Copied Rx Code!' : 'Copy Rx Code'}</span>
+          </button>
+          <button
+            type="button"
             onClick={handlePrint}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 shadow-xs transition"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-stone-50 border border-stone-300 text-stone-700 shadow-xs transition"
           >
             <Printer className="w-3.5 h-3.5 text-stone-600" />
             <span>Print Slip</span>
@@ -88,7 +110,7 @@ export default function CasePrintView({ caseData, patient, doctor }) {
             type="button"
             onClick={handleDownloadPDF}
             disabled={isExporting}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition disabled:opacity-50"
           >
             {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
             <span>{isExporting ? 'Generating PDF...' : 'Download PDF'}</span>
@@ -99,8 +121,36 @@ export default function CasePrintView({ caseData, patient, doctor }) {
       {/* Printable Paper Container */}
       <div
         ref={printRef}
-        className="print-page bg-white text-stone-900 p-8 sm:p-10 rounded-2xl shadow-md border border-stone-200 max-w-4xl mx-auto space-y-6 text-xs"
+        className="print-page bg-white text-stone-900 p-8 sm:p-10 rounded-3xl shadow-md border border-stone-200 max-w-4xl mx-auto space-y-6 text-xs"
       >
+        {/* Prominent Official Prescription Code Top Banner */}
+        <div className="bg-gradient-to-r from-emerald-950 via-herb to-emerald-900 text-white p-4 rounded-2xl border border-emerald-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-400 text-emerald-950 flex items-center justify-center font-black text-sm shadow-xs">
+              ℞
+            </div>
+            <div>
+              <span className="text-[10px] text-amber-300 uppercase font-black tracking-widest block">
+                Official Unique Prescription Code
+              </span>
+              <span className="text-lg sm:text-xl font-black font-mono tracking-widest text-white">
+                {rxCode}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-col sm:items-end gap-1 text-[11px] text-emerald-100 border-t sm:border-t-0 border-emerald-800 pt-2 sm:pt-0">
+            <div>
+              <span className="text-stone-300">Visit Date: </span>
+              <strong className="text-white">{formatDate(caseData?.visitDate || new Date())}</strong>
+            </div>
+            <div>
+              <span className="text-stone-300">ABDM FHIR Ref: </span>
+              <strong className="text-amber-200 font-mono">{caseData?.id ? caseData.id.slice(0, 8).toUpperCase() : 'REC-001'}</strong>
+            </div>
+          </div>
+        </div>
+
         {/* Header Block */}
         <div className="border-b-2 border-emerald-800 pb-5">
           <div className="flex justify-between items-start">
@@ -129,8 +179,8 @@ export default function CasePrintView({ caseData, patient, doctor }) {
           </div>
         </div>
 
-        {/* Patient Demographics Card */}
-        <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {/* Patient Demographics & Rx Code Card */}
+        <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div>
             <span className="text-[10px] text-stone-500 uppercase font-semibold block">Patient Name</span>
             <span className="font-bold text-stone-900 text-xs">{patient?.name || '—'}</span>
@@ -145,6 +195,12 @@ export default function CasePrintView({ caseData, patient, doctor }) {
             <span className="text-[10px] text-stone-500 uppercase font-semibold block">ABHA ID (Ayushman)</span>
             <span className="font-bold text-emerald-800 text-xs font-mono">
               {patient?.abhaId ? formatABHA(patient.abhaId) : 'Not registered'}
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] text-emerald-800 uppercase font-black block">Prescription No.</span>
+            <span className="font-bold text-emerald-950 text-xs font-mono bg-emerald-100/80 px-1.5 py-0.5 rounded border border-emerald-300">
+              {rxCode}
             </span>
           </div>
           <div>
@@ -263,11 +319,16 @@ export default function CasePrintView({ caseData, patient, doctor }) {
 
         {/* Prescription Table (Rx) */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 border-b border-stone-300 pb-1.5">
-            <span className="text-base font-black text-emerald-950 font-serif">℞</span>
-            <h3 className="font-bold text-emerald-950 text-xs uppercase">
-              Prescription & Medicines (Chikitsa / Aushadhi)
-            </h3>
+          <div className="flex items-center justify-between border-b border-stone-300 pb-1.5 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-base font-black text-emerald-950 font-serif">℞</span>
+              <h3 className="font-bold text-emerald-950 text-xs uppercase">
+                Prescription & Medicines (Chikitsa / Aushadhi)
+              </h3>
+            </div>
+            <span className="text-[10px] font-mono font-black text-emerald-900 bg-emerald-100 px-2.5 py-0.5 rounded border border-emerald-300">
+              Rx No: {rxCode}
+            </span>
           </div>
 
           {medicines.length > 0 ? (

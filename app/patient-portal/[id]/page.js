@@ -20,7 +20,7 @@ import {
   Leaf,
   CheckCircle2
 } from 'lucide-react';
-import { formatDate, formatABHA, getDoshaColor } from '@/lib/utils';
+import { formatDate, formatABHA, getDoshaColor, formatRxCode } from '@/lib/utils';
 import { DIET_PRESETS } from '@/lib/ayush-data';
 import AIPatientSummaryCard from '@/components/AIPatientSummaryCard';
 import AIPatientSummaryModal from '@/components/AIPatientSummaryModal';
@@ -452,10 +452,15 @@ export default function PatientPortalPage() {
                   key={c.id}
                   className="bg-white rounded-2xl border border-stone-200 shadow-xs p-6 space-y-4 hover:border-emerald-300 transition"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-100">
-                    <div>
-                      <div className="font-bold text-sm text-stone-900">
-                        Consultation on {formatDate(c.visitDate)}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-lg bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-2xs">
+                          Rx Code: {formatRxCode(c.id, c.visitDate)}
+                        </span>
+                        <span className="font-bold text-sm text-stone-900">
+                          Consultation on {formatDate(c.visitDate)}
+                        </span>
                       </div>
                       <div className="text-xs font-semibold text-emerald-800">
                         Diagnosis: {c.ayurvedicDiagnosis} {c.modernDiagnosis ? `(${c.modernDiagnosis})` : ''}
@@ -467,7 +472,7 @@ export default function PatientPortalPage() {
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition self-start sm:self-auto"
                     >
                       <Printer className="w-3.5 h-3.5" />
-                      <span>View & Download PDF</span>
+                      <span>Open Prescription & PDF</span>
                     </Link>
                   </div>
 

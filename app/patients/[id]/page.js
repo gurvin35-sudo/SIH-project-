@@ -29,7 +29,7 @@ import {
   Upload,
   ExternalLink
 } from 'lucide-react';
-import { formatDate, formatABHA, getDoshaColor } from '@/lib/utils';
+import { formatDate, formatABHA, getDoshaColor, formatRxCode } from '@/lib/utils';
 import { useLanguage } from '@/components/LanguageContext';
 import AIPatientSummaryModal from '@/components/AIPatientSummaryModal';
 
@@ -680,8 +680,13 @@ export default function PatientDetailPage() {
                         #{cases.length - idx}
                       </span>
                       <div>
-                        <div className="font-bold text-sm text-stone-900">
-                          Visit Date: {formatDate(caseItem.visitDate)}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm text-stone-900">
+                            Visit Date: {formatDate(caseItem.visitDate)}
+                          </span>
+                          <span className="text-[11px] font-mono font-black px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-2xs">
+                            Rx: {formatRxCode(caseItem.id, caseItem.visitDate)}
+                          </span>
                         </div>
                         <div className="text-[11px] text-stone-400">
                           Case ID: {caseItem.id.slice(0, 8)}...
