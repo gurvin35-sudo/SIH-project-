@@ -102,10 +102,9 @@ export default function HomePage() {
             <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold">
               <Compass className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-base text-stone-900">Automated Prakriti Assessment</h3>
+            <h3 className="font-bold text-base text-stone-900">Body-Type (Prakriti) Assessment</h3>
             <p className="text-xs text-stone-600 leading-relaxed">
-              Structured 8-parameter questionnaire that calculates real-time Vata, Pitta, and Kapha percentages
-              and determines the patient's dominant constitution automatically.
+              Simple guided questions that automatically calculate a patient's Vata, Pitta, and Kapha balance to help suggest personalized treatments.
             </p>
           </div>
 
@@ -114,10 +113,9 @@ export default function HomePage() {
             <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
               <Activity className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-base text-stone-900">Ashtavidha & Agni Pariksha</h3>
+            <h3 className="font-bold text-base text-stone-900">8-Fold Check (Ashtavidha Pariksha)</h3>
             <p className="text-xs text-stone-600 leading-relaxed">
-              Rapid clinical selection for Nadi (Pulse), Jihva (Tongue), Mala, Mutra, Sparsha, Druk, Shabda,
-              and Aakriti with classical signs and modern descriptors.
+              Quick 1-click recording for pulse, tongue, eyes, voice, skin, and digestion without lengthy manual typing.
             </p>
           </div>
 
@@ -126,10 +124,9 @@ export default function HomePage() {
             <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
               <FileCheck2 className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-base text-stone-900">Dual Diagnosis & Prescription</h3>
+            <h3 className="font-bold text-base text-stone-900">Dual Diagnosis & Prescriptions</h3>
             <p className="text-xs text-stone-600 leading-relaxed">
-              Maps traditional Ayurvedic Rogas (e.g., Amavata, Amlapitta, Sandhigatavata) alongside modern ICD-11
-              codes with integrated classical herbal formulary and Pathya-Apathya rules.
+              Connects Ayurvedic conditions with modern ICD-11 medical codes, along with safe herbal remedies, dosage timings, and diet rules.
             </p>
           </div>
         </div>
