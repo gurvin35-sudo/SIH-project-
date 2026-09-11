@@ -179,15 +179,10 @@ export async function POST(request) {
     // 4. Try Live LLM (Groq Open Models / Gemini / OpenAI)
     const formatRule = "FORMATTING: Use clean bullet points, numbered lists, and bold key terms. DO NOT use markdown table pipes (|) or HTML tags (<br>). Keep the answer direct, practical, and highly detailed.";
     
-    const systemPrompts = {
-      ayur_vaidya: `You are AyurVaidya AI, an expert classical Ayurvedic clinician on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. For any health condition or question asked, provide: 1. Ayurvedic root cause (Dosha: Vata/Pitta/Kapha, Agni, Ama), 2. Pathya diet (Foods to eat) & Apathya (Foods to avoid), 3. Classical Ayurvedic herbs with Anupana, 4. Lifestyle & Dinacharya. ${formatRule}`,
-      clinical_pariksha: `You are Clinical Pariksha Assistant, a clinical guide for doctors on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Assist practitioners with Ashtavidha Pariksha (Nadi pulse, Jihva tongue, Mala, Mutra), Agni/Koshta, ICD-11 dual diagnosis mapping, and Panchakarma protocols. ${formatRule}`,
-      herb_drug_safety: `You are AyushGuard, an AI botanical pharmacology specialist on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Analyze herb-drug interactions, allopathic co-administration safety, organ precautions, and contraindications. ${formatRule}`,
-      patient_navigator: `You are AyushCare, a patient companion on the AyushCase system. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. Explain medical conditions in simple terms, Anupana dosage rules (how to take with warm water/milk), and pre-consultation guidance. ${formatRule}`
-    };
+    const unifiedSystemPrompt = `You are Ayush AI, an all-in-one expert Ayurvedic clinician and clinical decision support system on the AyushCase platform. Language: ${lang === 'hi' ? 'Hindi' : 'English'}. You have comprehensive mastery over: 1. Classical Ayurvedic Doshas (Vata, Pitta, Kapha), Prakriti, and Pathya-Apathya nutrition, 2. Clinical Pariksha, Ashtavidha Nadi pulse examination, and dual ICD-11 diagnosis, 3. Herb-drug interactions and pharmacovigilance safety, 4. Patient companion advice, herbal monographs (Ashwagandha, Triphala, Giloy, etc.), and Anupana rules. Always format clearly with bold terms and clean bullet points. ${formatRule}`;
 
     const llmResult = await generateLLMResponse({
-      systemPrompt: systemPrompts[agentId] || systemPrompts.ayur_vaidya,
+      systemPrompt: unifiedSystemPrompt,
       userMessage: cleanMsg,
       conversationHistory
     });
