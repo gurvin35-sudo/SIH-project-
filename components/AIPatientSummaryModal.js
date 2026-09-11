@@ -384,13 +384,13 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                       {/* AYUSH Constitutional Profile (Agni / Koshta) */}
                       <div className="p-3.5 bg-emerald-50/70 rounded-xl border border-emerald-200 space-y-1.5">
                         <span className="text-[10px] uppercase font-bold text-emerald-900 block">
-                          4. Ayurvedic Digestion & Constitution (अग्नि व कोष्ठ)
+                          4. Body Digestion & Bowel Habit (Agni & Koshta)
                         </span>
                         <p className="text-stone-800 text-[11px]">
-                          <strong>Agni (Digestive Fire):</strong> {summary.preConsultationIntake?.ayushAgni || patientData?.ayushAgni || 'Samagni (Balanced)'}
+                          <strong>Digestive Fire (Agni):</strong> {summary.preConsultationIntake?.ayushAgni || patientData?.ayushAgni || 'Samagni (Normal)'}
                         </p>
                         <p className="text-stone-800 text-[11px]">
-                          <strong>Koshta (Bowel Nature):</strong> {summary.preConsultationIntake?.ayushKoshta || patientData?.ayushKoshta || 'Madhyama'}
+                          <strong>Bowel Nature (Koshta):</strong> {summary.preConsultationIntake?.ayushKoshta || patientData?.ayushKoshta || 'Madhyama (Regular)'}
                         </p>
                         <p className="text-stone-800 text-[11px]">
                           <strong>Lifestyle & Diet:</strong> {summary.preConsultationIntake?.personalHistory || patientData?.personalHistory || 'Standard routine'}
@@ -527,13 +527,13 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                                   {data.pathya && (
                                     <div className="p-2 bg-emerald-50/70 rounded-lg border border-emerald-200">
-                                      <strong className="text-emerald-900 block text-[10px] uppercase">Pathya (Diet/DOs):</strong>
+                                      <strong className="text-emerald-900 block text-[10px] uppercase">Wholesome Diet - DOs (Pathya):</strong>
                                       <span className="text-emerald-950">{data.pathya}</span>
                                     </div>
                                   )}
                                   {data.apathya && (
                                     <div className="p-2 bg-rose-50/70 rounded-lg border border-rose-200">
-                                      <strong className="text-rose-900 block text-[10px] uppercase">Apathya (DONTs):</strong>
+                                      <strong className="text-rose-900 block text-[10px] uppercase">Unwholesome Foods - DONTs (Apathya):</strong>
                                       <span className="text-rose-950">{data.apathya}</span>
                                     </div>
                                   )}
@@ -694,11 +694,11 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                         <table className="w-full text-left text-xs">
                           <thead className="bg-stone-100 text-stone-700 uppercase font-bold text-[10px] border-b border-stone-200">
                             <tr>
-                              <th className="p-3">Medicine / Aushadhi</th>
+                              <th className="p-3">Herbal Medicine (Aushadhi)</th>
                               <th className="p-3">Form</th>
                               <th className="p-3">Dosage</th>
-                              <th className="p-3">Timing / Kala</th>
-                              <th className="p-3">Anupana (Vehicle)</th>
+                              <th className="p-3">Timing (Kala)</th>
+                              <th className="p-3">Vehicle / Taken With (Anupana)</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-stone-100">
@@ -726,7 +726,7 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                     <div className="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-200/80 space-y-2">
                       <span className="text-[10px] font-extrabold uppercase text-emerald-900 tracking-wider flex items-center gap-1">
                         <Leaf className="w-3.5 h-3.5 text-emerald-700" />
-                        Panchakarma Therapies Undergone
+                        Detox & Therapies Undergone (Panchakarma)
                       </span>
                       <p className="text-xs text-stone-800 font-medium">
                         {summary.panchakarmaProcedures?.length > 0
@@ -741,8 +741,8 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                         Dietary Regimen (Pathya / Apathya)
                       </span>
                       <div className="text-[11px] space-y-1">
-                        <div><strong className="text-emerald-800">Pathya (DOs):</strong> {summary.dietAdvice?.pathya || 'Warm easily digestible foods'}</div>
-                        <div><strong className="text-rose-700">Apathya (DONTs):</strong> {summary.dietAdvice?.apathya || 'Cold, fried, heavy food items'}</div>
+                        <div><strong className="text-emerald-800">Wholesome (DOs):</strong> {summary.dietAdvice?.pathya || 'Warm easily digestible foods'}</div>
+                        <div><strong className="text-rose-700">Unwholesome (DONTs):</strong> {summary.dietAdvice?.apathya || 'Cold, fried, heavy food items'}</div>
                       </div>
                     </div>
                   </div>
@@ -756,21 +756,21 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                   {/* Prakriti Dosha Distribution Bar */}
                   <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="font-bold text-stone-800">Lifelong Bio-Energy Constitution (Prakriti)</span>
+                      <span className="font-bold text-stone-800">Natural Body Type & Constitution (Prakriti)</span>
                       <span className="font-extrabold text-emerald-800">{summary.prakriti}</span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-center text-xs">
                       <div className="p-2.5 rounded-xl bg-sky-50 border border-sky-200">
-                        <div className="text-[10px] font-bold text-sky-700 uppercase">Vata</div>
+                        <div className="text-[10px] font-bold text-sky-700 uppercase">Air (Vata)</div>
                         <div className="text-lg font-black text-sky-900">{summary.doshaScores?.vata || 40}%</div>
                       </div>
                       <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200">
-                        <div className="text-[10px] font-bold text-amber-700 uppercase">Pitta</div>
+                        <div className="text-[10px] font-bold text-amber-700 uppercase">Fire (Pitta)</div>
                         <div className="text-lg font-black text-amber-900">{summary.doshaScores?.pitta || 35}%</div>
                       </div>
                       <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                        <div className="text-[10px] font-bold text-emerald-700 uppercase">Kapha</div>
+                        <div className="text-[10px] font-bold text-emerald-700 uppercase">Water/Earth (Kapha)</div>
                         <div className="text-lg font-black text-emerald-900">{summary.doshaScores?.kapha || 25}%</div>
                       </div>
                     </div>
@@ -779,27 +779,27 @@ Generated via AyushCase Clinical Intelligence on ${new Date().toLocaleDateString
                   {/* Pariksha Matrix */}
                   <div className="space-y-2">
                     <h4 className="text-xs font-black uppercase text-stone-700 tracking-wider">
-                      Ashtavidha Pariksha & Physiological Markers
+                      8-Fold Examination & Physiological Markers (Ashtavidha Pariksha)
                     </h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                       <div className="p-3 bg-white rounded-xl border border-stone-200">
-                        <span className="text-[10px] uppercase font-bold text-stone-400 block">Agni (Digestive Fire)</span>
-                        <span className="font-bold text-stone-800">{summary.parikshaTrends?.agni || 'Samagni'}</span>
+                        <span className="text-[10px] uppercase font-bold text-stone-400 block">Digestive Fire (Agni)</span>
+                        <span className="font-bold text-stone-800">{summary.parikshaTrends?.agni || 'Samagni (Normal)'}</span>
                       </div>
                       <div className="p-3 bg-white rounded-xl border border-stone-200">
-                        <span className="text-[10px] uppercase font-bold text-stone-400 block">Koshta (Bowel Nature)</span>
-                        <span className="font-bold text-stone-800">{summary.parikshaTrends?.koshta || 'Madhyama'}</span>
+                        <span className="text-[10px] uppercase font-bold text-stone-400 block">Bowel Nature (Koshta)</span>
+                        <span className="font-bold text-stone-800">{summary.parikshaTrends?.koshta || 'Madhyama (Regular)'}</span>
                       </div>
                       <div className="p-3 bg-white rounded-xl border border-stone-200">
-                        <span className="text-[10px] uppercase font-bold text-stone-400 block">Nadi (Pulse)</span>
+                        <span className="text-[10px] uppercase font-bold text-stone-400 block">Pulse (Nadi)</span>
                         <span className="font-bold text-stone-800">{summary.parikshaTrends?.nadi || 'Mandagati'}</span>
                       </div>
                       <div className="p-3 bg-white rounded-xl border border-stone-200">
-                        <span className="text-[10px] uppercase font-bold text-stone-400 block">Jihva (Tongue)</span>
-                        <span className="font-bold text-stone-800">{summary.parikshaTrends?.jihva || 'Niram (Clean)'}</span>
+                        <span className="text-[10px] uppercase font-bold text-stone-400 block">Tongue (Jihva)</span>
+                        <span className="font-bold text-stone-800">{summary.parikshaTrends?.jihva || 'Nirama (Clean)'}</span>
                       </div>
                       <div className="p-3 bg-white rounded-xl border border-stone-200">
-                        <span className="text-[10px] uppercase font-bold text-stone-400 block">Mala (Bowel Movement)</span>
+                        <span className="text-[10px] uppercase font-bold text-stone-400 block">Stool / Bowel (Mala)</span>
                         <span className="font-bold text-stone-800">{summary.parikshaTrends?.mala || 'Regular'}</span>
                       </div>
                       <div className="p-3 bg-white rounded-xl border border-stone-200">

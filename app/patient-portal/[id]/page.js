@@ -209,13 +209,13 @@ export default function PatientPortalPage() {
           {/* Prakriti Badge on Health Card */}
           <div className="bg-emerald-800/80 backdrop-blur-sm p-4 rounded-2xl border border-emerald-600/60 text-center shrink-0">
             <span className="text-[10px] uppercase font-bold text-amber-200 block mb-1">
-              Your Ayurvedic Prakriti
+              Body Type (Prakriti)
             </span>
             <div className="text-base font-black text-white">
               {patient.prakritiType || 'Tridoshic (Balanced)'}
             </div>
             <span className="text-[10px] text-emerald-300 block mt-1">
-              Personalized Constitution
+              Natural Body Constitution (Prakriti)
             </span>
           </div>
         </div>
@@ -260,11 +260,11 @@ export default function PatientPortalPage() {
             </div>
 
             <div className="p-3.5 bg-emerald-50/70 rounded-xl border border-emerald-200 space-y-1 sm:col-span-2">
-              <span className="font-bold text-emerald-900 text-[10px] uppercase block">Ayurvedic Digestion & Constitution</span>
+              <span className="font-bold text-emerald-900 text-[10px] uppercase block">Digestion & Bowel Health</span>
               <div className="flex flex-wrap gap-4 text-stone-800 text-[11px]">
-                <span><strong>Agni (Digestive Fire):</strong> {patient.ayushAgni || 'Samagni'}</span>
-                <span><strong>Koshta (Bowel Nature):</strong> {patient.ayushKoshta || 'Madhyama'}</span>
-                <span><strong>Lifestyle / Routine:</strong> {patient.personalHistory || 'Regular'}</span>
+                <span><strong>Digestive Fire (Agni):</strong> {patient.ayushAgni || 'Samagni (Normal)'}</span>
+                <span><strong>Bowel Nature (Koshta):</strong> {patient.ayushKoshta || 'Madhyama (Regular)'}</span>
+                <span><strong>Lifestyle / Daily Routine:</strong> {patient.personalHistory || 'Regular'}</span>
               </div>
             </div>
           </div>

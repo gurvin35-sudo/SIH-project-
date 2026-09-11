@@ -175,19 +175,19 @@ export default function CasePrintView({ caseData, patient, doctor }) {
           </div>
 
           <div className="p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-xl space-y-2">
-            <h3 className="font-bold text-emerald-900 text-xs uppercase">Prakriti (Constitution)</h3>
+            <h3 className="font-bold text-emerald-900 text-xs uppercase">Body Type (Prakriti)</h3>
             <div className="text-xs font-extrabold text-emerald-950">
               {caseData?.prakritiResult || patient?.prakritiType || 'Tridoshic (Balanced)'}
             </div>
             <div className="space-y-1 pt-1 text-[11px] text-stone-700">
               <div className="flex justify-between">
-                <span>Vata (वात):</span> <span className="font-bold">{caseData?.vataScore || 0} pts</span>
+                <span>Air/Space (Vata):</span> <span className="font-bold">{caseData?.vataScore || 0} pts</span>
               </div>
               <div className="flex justify-between">
-                <span>Pitta (पित्त):</span> <span className="font-bold">{caseData?.pittaScore || 0} pts</span>
+                <span>Fire/Metabolism (Pitta):</span> <span className="font-bold">{caseData?.pittaScore || 0} pts</span>
               </div>
               <div className="flex justify-between">
-                <span>Kapha (कफ):</span> <span className="font-bold">{caseData?.kaphaScore || 0} pts</span>
+                <span>Earth/Structure (Kapha):</span> <span className="font-bold">{caseData?.kaphaScore || 0} pts</span>
               </div>
             </div>
           </div>
@@ -196,39 +196,39 @@ export default function CasePrintView({ caseData, patient, doctor }) {
         {/* Ashtavidha Pariksha Table */}
         <div className="p-3.5 bg-stone-50 border border-stone-200 rounded-xl space-y-2">
           <h3 className="font-bold text-stone-900 text-xs uppercase">
-            Ashtavidha Pariksha (Eight-Fold Clinical Examination)
+            8-Fold Clinical Examination (Ashtavidha Pariksha)
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-[11px]">
             <div className="bg-white p-2 rounded-lg border border-stone-200">
-              <span className="text-stone-500 block text-[10px]">Nadi (Pulse):</span>
-              <span className="font-semibold text-stone-800">{caseData?.nadiPariksha || 'Prakruta'}</span>
+              <span className="text-stone-500 block text-[10px]">Pulse (Nadi):</span>
+              <span className="font-semibold text-stone-800">{caseData?.nadiPariksha || 'Prakruta (Normal)'}</span>
             </div>
             <div className="bg-white p-2 rounded-lg border border-stone-200">
-              <span className="text-stone-500 block text-[10px]">Jihva (Tongue):</span>
-              <span className="font-semibold text-stone-800">{caseData?.jihvaPariksha || 'Nirama'}</span>
+              <span className="text-stone-500 block text-[10px]">Tongue (Jihva):</span>
+              <span className="font-semibold text-stone-800">{caseData?.jihvaPariksha || 'Nirama (Clean)'}</span>
             </div>
             <div className="bg-white p-2 rounded-lg border border-stone-200">
-              <span className="text-stone-500 block text-[10px]">Mala (Bowel):</span>
-              <span className="font-semibold text-stone-800">{caseData?.malaPariksha || 'Prakruta'}</span>
+              <span className="text-stone-500 block text-[10px]">Stool / Bowel (Mala):</span>
+              <span className="font-semibold text-stone-800">{caseData?.malaPariksha || 'Prakruta (Regular)'}</span>
             </div>
             <div className="bg-white p-2 rounded-lg border border-stone-200">
-              <span className="text-stone-500 block text-[10px]">Mutra (Urine):</span>
-              <span className="font-semibold text-stone-800">{caseData?.mutraPariksha || 'Prakruta'}</span>
+              <span className="text-stone-500 block text-[10px]">Urine (Mutra):</span>
+              <span className="font-semibold text-stone-800">{caseData?.mutraPariksha || 'Prakruta (Normal)'}</span>
             </div>
             <div className="bg-white p-2 rounded-lg border border-stone-200">
-              <span className="text-stone-500 block text-[10px]">Sparsha (Touch):</span>
-              <span className="font-semibold text-stone-800">{caseData?.sparshaPariksha || 'Sama'}</span>
+              <span className="text-stone-500 block text-[10px]">Skin / Touch (Sparsha):</span>
+              <span className="font-semibold text-stone-800">{caseData?.sparshaPariksha || 'Sama (Normal)'}</span>
             </div>
             <div className="bg-white p-2 rounded-lg border border-stone-200">
-              <span className="text-stone-500 block text-[10px]">Druk (Eyes):</span>
-              <span className="font-semibold text-stone-800">{caseData?.drukPariksha || 'Prakruta'}</span>
+              <span className="text-stone-500 block text-[10px]">Eyes / Vision (Druk):</span>
+              <span className="font-semibold text-stone-800">{caseData?.drukPariksha || 'Prakruta (Clear)'}</span>
             </div>
             <div className="bg-white p-2 rounded-lg border border-stone-200">
-              <span className="text-stone-500 block text-[10px]">Shabda (Voice):</span>
-              <span className="font-semibold text-stone-800">{caseData?.shabdaPariksha || 'Prakruta'}</span>
+              <span className="text-stone-500 block text-[10px]">Voice / Speech (Shabda):</span>
+              <span className="font-semibold text-stone-800">{caseData?.shabdaPariksha || 'Prakruta (Clear)'}</span>
             </div>
             <div className="bg-white p-2 rounded-lg border border-stone-200">
-              <span className="text-stone-500 block text-[10px]">Agni / Koshta:</span>
+              <span className="text-stone-500 block text-[10px]">Digestion (Agni) / Bowel (Koshta):</span>
               <span className="font-semibold text-stone-800">
                 {caseData?.agniType || 'Samagni'} / {caseData?.koshtaType || 'Madhyama'}
               </span>
@@ -240,20 +240,20 @@ export default function CasePrintView({ caseData, patient, doctor }) {
         <div className="p-3.5 bg-emerald-950 text-white rounded-xl grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <span className="text-[10px] text-emerald-300 uppercase font-bold tracking-wider block">
-              Ayurvedic Diagnosis (रोग निदान)
+              Ayurvedic Diagnosis (Roga & Dosha)
             </span>
             <span className="text-sm font-black text-white block mt-0.5">
               {caseData?.ayurvedicDiagnosis || 'Not specified'}
             </span>
             {caseData?.prognosis && (
               <span className="text-[10px] text-emerald-300/80 block mt-0.5">
-                Prognosis: {caseData.prognosis}
+                Curability / Prognosis: {caseData.prognosis}
               </span>
             )}
           </div>
           <div>
             <span className="text-[10px] text-amber-300 uppercase font-bold tracking-wider block">
-              Modern / ICD-11 Diagnosis
+              Modern Medical Diagnosis (ICD-11)
             </span>
             <span className="text-xs font-bold text-amber-100 block mt-0.5">
               {caseData?.modernDiagnosis || 'Correlative diagnosis not specified'}
@@ -266,7 +266,7 @@ export default function CasePrintView({ caseData, patient, doctor }) {
           <div className="flex items-center gap-2 border-b border-stone-300 pb-1.5">
             <span className="text-base font-black text-emerald-950 font-serif">℞</span>
             <h3 className="font-bold text-emerald-950 text-xs uppercase">
-              Chikitsa & Prescription (औषध योग)
+              Prescription & Medicines (Chikitsa / Aushadhi)
             </h3>
           </div>
 
@@ -275,9 +275,9 @@ export default function CasePrintView({ caseData, patient, doctor }) {
               <thead>
                 <tr className="bg-stone-100 text-stone-700 font-bold border-b border-stone-300">
                   <th className="p-2 w-8">#</th>
-                  <th className="p-2">Medicine / Form</th>
-                  <th className="p-2">Dose (Matra)</th>
-                  <th className="p-2">Anupana (Vehicle)</th>
+                  <th className="p-2">Herbal Medicine / Form</th>
+                  <th className="p-2">Dosage (Matra)</th>
+                  <th className="p-2">Taken With (Anupana)</th>
                   <th className="p-2">Timing (Kala)</th>
                   <th className="p-2">Duration</th>
                 </tr>
@@ -305,7 +305,7 @@ export default function CasePrintView({ caseData, patient, doctor }) {
         {/* Panchakarma Therapies */}
         {caseData?.panchakarmaAdvice && (
           <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl space-y-1">
-            <h4 className="font-bold text-amber-900 text-xs uppercase">Panchakarma / External Therapies Recommended</h4>
+            <h4 className="font-bold text-amber-900 text-xs uppercase">Detox & External Therapies Recommended (Panchakarma)</h4>
             <p className="text-stone-800">{caseData.panchakarmaAdvice}</p>
           </div>
         )}
@@ -317,7 +317,7 @@ export default function CasePrintView({ caseData, patient, doctor }) {
               <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-1">
                 <h4 className="font-bold text-emerald-900 text-[11px] uppercase flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Pathya (Diet & Habits - DOs)</span>
+                  <span>Wholesome Diet & Habits - DOs (Pathya)</span>
                 </h4>
                 <p className="text-stone-700 text-[11px]">{caseData.pathyaDiet}</p>
               </div>
@@ -328,7 +328,7 @@ export default function CasePrintView({ caseData, patient, doctor }) {
                   <span className="w-3.5 h-3.5 rounded-full bg-rose-600 text-white flex items-center justify-center text-[9px] font-bold">
                     ✕
                   </span>
-                  <span>Apathya (Diet & Habits - DONTs)</span>
+                  <span>Unwholesome Foods & Habits - DONTs (Apathya)</span>
                 </h4>
                 <p className="text-stone-700 text-[11px]">{caseData.apathyaDiet}</p>
               </div>

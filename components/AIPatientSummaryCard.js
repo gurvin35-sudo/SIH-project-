@@ -67,9 +67,9 @@ export default function AIPatientSummaryCard({
         {/* Quick Highlights Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 relative z-10 text-xs">
           <div className="bg-white/10 backdrop-blur-xs rounded-xl p-2.5 border border-white/10">
-            <span className="text-emerald-300 text-[10px] uppercase font-semibold block">Constitution</span>
+            <span className="text-emerald-300 text-[10px] uppercase font-semibold block">Body Type (Prakriti)</span>
             <span className="font-bold text-white truncate block">
-              {patient.prakritiType || latestCase?.prakritiResult || 'Tridoshic'}
+              {patient.prakritiType || latestCase?.prakritiResult || 'Tridoshic (Balanced)'}
             </span>
           </div>
 
@@ -79,7 +79,7 @@ export default function AIPatientSummaryCard({
           </div>
 
           <div className="bg-white/10 backdrop-blur-xs rounded-xl p-2.5 border border-white/10">
-            <span className="text-emerald-300 text-[10px] uppercase font-semibold block">Latest Roga</span>
+            <span className="text-emerald-300 text-[10px] uppercase font-semibold block">Diagnosed Condition (Roga)</span>
             <span className="font-bold text-white truncate block">
               {latestCase?.ayurvedicDiagnosis || 'General Assessment'}
             </span>

@@ -18,7 +18,7 @@ export default function DoshaMeter({ vata = 0, pitta = 0, kapha = 0, result = ''
         <div className="flex items-center gap-2">
           <Activity className="w-5 h-5 text-emerald-400" />
           <h3 className="font-semibold text-stone-100 text-sm tracking-wide uppercase">
-            {language === 'hi' ? 'दोष एवं प्रकृति विश्लेषण' : 'Dosha & Prakriti Balance'}
+            {language === 'hi' ? 'दोष एवं शारीरिक प्रकृति (Tridosha & Prakriti)' : 'Body Energies & Constitution (Tridosha & Prakriti)'}
           </h3>
         </div>
         {result ? (

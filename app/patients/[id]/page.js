@@ -343,22 +343,22 @@ export default function PatientDetailPage() {
           {/* AYUSH Constitutional Assessment */}
           <div className="p-4 bg-emerald-50/70 rounded-2xl border border-emerald-200 space-y-2">
             <span className="font-black text-emerald-950 uppercase text-[11px] block">
-              4. AYUSH Constitutional Indicators (प्रकृति व अग्नि)
+              4. Body Constitution & Digestion (Prakriti & Agni)
             </span>
             <p className="text-stone-800">
-              <span className="font-bold text-stone-500">Dominant Prakriti:</span>{' '}
+              <span className="font-bold text-stone-500">Body Type (Prakriti):</span>{' '}
               {patient.prakritiType || parsedAiSummary?.ayushParameters?.prakritiTendency || 'Vata-Pitta dominant'}
             </p>
             <p className="text-stone-800">
-              <span className="font-bold text-stone-500">Agni (Digestive Fire):</span>{' '}
-              {patient.ayushAgni || parsedAiSummary?.ayushParameters?.agni || 'Vishamagni (Variable / Vata)'}
+              <span className="font-bold text-stone-500">Digestive Fire (Agni):</span>{' '}
+              {patient.ayushAgni || parsedAiSummary?.ayushParameters?.agni || 'Vishamagni (Irregular / Vata)'}
             </p>
             <p className="text-stone-800">
-              <span className="font-bold text-stone-500">Koshta (Bowel Nature):</span>{' '}
+              <span className="font-bold text-stone-500">Bowel Nature (Koshta):</span>{' '}
               {patient.ayushKoshta || parsedAiSummary?.ayushParameters?.koshta || 'Krura (Hard / Constipated)'}
             </p>
             <p className="text-stone-700 text-[11px]">
-              <span className="font-bold text-stone-500">Personal History:</span>{' '}
+              <span className="font-bold text-stone-500">Lifestyle & Daily Routine:</span>{' '}
               {patient.personalHistory || parsedAiSummary?.clinicalHistory?.personalHistory || 'Vegetarian diet, irregular sleep schedule.'}
             </p>
           </div>
