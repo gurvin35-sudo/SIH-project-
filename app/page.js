@@ -46,9 +46,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-stone-300 text-sm sm:text-base leading-relaxed font-normal">
-            AyushCase empowers AYUSH practitioners with automated Prakriti (constitution) calculation,
-            structured Ashtavidha Pariksha, dual Ayurvedic & ICD-11 diagnosis, instant voice-to-text notes,
-            and ABHA-compliant longitudinal patient case records.
+            AyushCase helps AYUSH practitioners manage patient case-taking digitally. It provides automatic body-type assessment, structured case records, Ayurvedic and ICD-11 diagnosis support, voice-to-text notes, and secure long-term patient records.
           </p>
 
           {/* Action Buttons */}
