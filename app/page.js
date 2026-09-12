@@ -17,13 +17,15 @@ import {
   CheckCircle2,
   Users,
   Compass,
-  HeartPulse
+  HeartPulse,
+  Globe,
+  Check
 } from 'lucide-react';
-import { useLanguage } from '@/components/LanguageContext';
+import { useLanguage, SUPPORTED_LANGUAGES } from '@/components/LanguageContext';
 
 export default function HomePage() {
   const { data: session } = useSession();
-  const { language, t } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
 
   return (
     <div className="space-y-16 py-6 sm:py-10">
@@ -77,6 +79,40 @@ export default function HomePage() {
                 <span>Doctor Login (Demo)</span>
               </Link>
             )}
+          </div>
+
+          {/* Multi-Language Indian Accessibility Selector */}
+          <div className="pt-4 border-t border-emerald-800/80 space-y-2.5">
+            <div className="flex items-center gap-2 text-xs text-amber-300 font-bold flex-wrap">
+              <Globe className="w-3.5 h-3.5 text-amber-300" />
+              <span>Multi-Language AYUSH Accessibility • बहुभाषी आयुष सुविधा</span>
+              <span className="text-[10px] bg-emerald-800 text-emerald-200 px-2 py-0.5 rounded-full border border-emerald-600 font-semibold">
+                6 Indian Languages Supported
+              </span>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {SUPPORTED_LANGUAGES.map((lang) => {
+                const isSelected = language === lang.code;
+                return (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => setLanguage(lang.code)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition transform active:scale-95 ${
+                      isSelected
+                        ? 'bg-amber-400 text-emerald-950 shadow-md ring-2 ring-amber-300 font-black'
+                        : 'bg-emerald-900/90 hover:bg-emerald-800 text-emerald-100 border border-emerald-700/60 hover:text-white'
+                    }`}
+                  >
+                    <span>{lang.flag}</span>
+                    <span>{lang.native}</span>
+                    <span className="text-[10px] opacity-75">({lang.label})</span>
+                    {isSelected && <Check className="w-3 h-3 ml-0.5 text-emerald-950 stroke-[3]" />}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>

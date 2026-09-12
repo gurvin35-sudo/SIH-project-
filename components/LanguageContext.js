@@ -2,10 +2,20 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+export const SUPPORTED_LANGUAGES = [
+  { code: 'en', label: 'English', native: 'English', flag: '🌐', short: 'EN' },
+  { code: 'hi', label: 'Hindi', native: 'हिन्दी', flag: '🇮🇳', short: 'HI' },
+  { code: 'mr', label: 'Marathi', native: 'मराठी', flag: '🚩', short: 'MR' },
+  { code: 'gu', label: 'Gujarati', native: 'ગુજરાતી', flag: '🪔', short: 'GU' },
+  { code: 'pa', label: 'Punjabi', native: 'ਪੰਜਾਬੀ', flag: '🌾', short: 'PA' },
+  { code: 'kn', label: 'Kannada', native: 'ಕನ್ನಡ', flag: '🏵️', short: 'KN' },
+];
+
 const LanguageContext = createContext({
   language: 'en',
   setLanguage: () => {},
   t: (key) => key,
+  supportedLanguages: SUPPORTED_LANGUAGES,
 });
 
 const translations = {
@@ -187,6 +197,114 @@ const translations = {
     medicalPassport: 'पोर्टेबल डिजिटल हेल्थ पासपोर्ट',
     copySummary: 'हैंडओवर नोट कॉपी करें',
   },
+  mr: {
+    appName: 'आयुषकेस (AyushCase)',
+    appTagline: 'आयुष क्लिनिकल केस-टेकिंग आणि प्रकृती विश्लेषण',
+    dashboard: 'डॅशबोर्ड',
+    patients: 'रुग्ण यादी',
+    newCase: 'नवीन केस नोंदवा',
+    addPatient: 'नवीन रुग्ण जोडा',
+    logout: 'लॉगआउट',
+    login: 'लॉगिन',
+    signup: 'वैद्य नोंदणी',
+    totalPatients: 'एकूण रुग्ण',
+    casesToday: 'आज नोंदवलेली प्रकरणे',
+    prakritiDistribution: 'शारीरिक प्रकृती वितरण',
+    recentCases: 'अलीकडील केसेस',
+    startCaseNow: 'नवीन केस सुरू करा',
+    viewAllPatients: 'सर्व रुग्ण पहा',
+    patientDetails: 'रुग्ण माहिती',
+    fullName: 'पूर्ण नाव',
+    age: 'वय',
+    gender: 'लिंग',
+    abhaId: 'आभा आयडी (ABHA)',
+    chiefComplaintLabel: 'मुख्य लक्षणे (वेदना)',
+    ayurvedicDiagnosisLabel: 'आयुर्वेदिक निदान (दोष व व्याधी)',
+    prescriptionLabel: 'औषध योजना व मात्रा (Prescription)',
+    printPrescription: 'प्रिंट / PDF डाउनलोड',
+    backToPatients: '← रुग्ण यादीवर परत',
+  },
+  gu: {
+    appName: 'આયુષકેસ (AyushCase)',
+    appTagline: 'આયુષ ક્લિનિકલ કેસ-ટેકિંગ અને પ્રકૃતિ વિશ્લેષણ',
+    dashboard: 'ડેશબોર્ડ',
+    patients: 'દર્દીઓની યાદી',
+    newCase: 'નવો કેસ નોંધો',
+    addPatient: 'દર્દી ઉમેરો',
+    logout: 'લૉગઆઉટ',
+    login: 'લૉગિન',
+    signup: 'વૈદ્ય નોંધણી',
+    totalPatients: 'કુલ દર્દીઓ',
+    casesToday: 'આજના કેસ',
+    prakritiDistribution: 'શારીરિક પ્રકૃતિ વિતરણ',
+    recentCases: 'તાજેતરના કેસ',
+    startCaseNow: 'નવો કેસ શરૂ કરો',
+    viewAllPatients: 'બધા દર્દીઓ જુઓ',
+    patientDetails: 'દર્દીની વિગતો',
+    fullName: 'પૂરું નામ',
+    age: 'ઉંમર',
+    gender: 'જાતિ',
+    abhaId: 'આભા આઈડી (ABHA)',
+    chiefComplaintLabel: 'મુખ્ય લક્ષણો (વેદના)',
+    ayurvedicDiagnosisLabel: 'આયુર્વેદિક નિદાન',
+    prescriptionLabel: 'ઔષધિ અને માત્રા',
+    printPrescription: 'પ્રિન્ટ / PDF ડાઉનલોડ',
+    backToPatients: '← દર્દી યાદી પર પાછા',
+  },
+  pa: {
+    appName: 'ਆਯੁਸ਼ਕੇਸ (AyushCase)',
+    appTagline: 'ਆਯੁਸ਼ ਕਲੀਨਿਕਲ ਕੇਸ-ਟੇਕਿੰਗ ਅਤੇ ਪ੍ਰਕਿਰਤੀ ਵਿਸ਼ਲੇਸ਼ਣ',
+    dashboard: 'ਡੈਸ਼ਬੋਰਡ',
+    patients: 'ਮਰੀਜ਼ਾਂ ਦੀ ਸੂਚੀ',
+    newCase: 'ਨਵਾਂ ਕੇਸ ਦਰਜ ਕਰੋ',
+    addPatient: 'ਮਰੀਜ਼ ਸ਼ਾਮਲ ਕਰੋ',
+    logout: 'ਲਾਗ ਆਊਟ',
+    login: 'ਲਾਗਇਨ',
+    signup: 'ਵੈਦ ਰਜਿਸਟ੍ਰੇਸ਼ਨ',
+    totalPatients: 'ਕੁੱਲ ਮਰੀਜ਼',
+    casesToday: 'ਅੱਜ ਦੇ ਕੇਸ',
+    prakritiDistribution: 'ਸਰੀਰਕ ਪ੍ਰਕਿਰਤੀ ਵੰਡ',
+    recentCases: 'ਹਾਲੀਆ ਕੇਸ',
+    startCaseNow: 'ਨਵਾਂ ਕੇਸ ਸ਼ੁਰੂ ਕਰੋ',
+    viewAllPatients: 'ਸਾਰੇ ਮਰੀਜ਼ ਦੇਖੋ',
+    patientDetails: 'ਮਰੀਜ਼ ਦਾ ਵੇਰਵਾ',
+    fullName: 'ਪੂਰਾ ਨਾਮ',
+    age: 'ਉਮਰ',
+    gender: 'ਲਿੰਗ',
+    abhaId: 'ਆਭਾ ਆਈਡੀ (ABHA)',
+    chiefComplaintLabel: 'ਮੁੱਖ ਲੱਛਣ',
+    ayurvedicDiagnosisLabel: 'ਆਯੁਰਵੈਦਿਕ ਨਿਦਾਨ',
+    prescriptionLabel: 'ਦਵਾਈ ਅਤੇ ਖ਼ੁਰਾਕ',
+    printPrescription: 'ਪ੍ਰਿੰਟ / PDF ਡਾਊਨਲੋਡ',
+    backToPatients: '← ਮਰੀਜ਼ ਸੂਚੀ ਤੇ ਵਾਪਸ',
+  },
+  kn: {
+    appName: 'ಆಯುಷ್‌ಕೇಸ್ (AyushCase)',
+    appTagline: 'ಆಯುಷ್ ಕ್ಲಿನಿಕಲ್ ಕೇಸ್-ಟೇಕಿಂಗ್ ಮತ್ತು ಪ್ರಕೃತಿ ವಿಶ್ಲೇಷಣೆ',
+    dashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
+    patients: 'ರೋಗಿಗಳ ಪಟ್ಟಿ',
+    newCase: 'ಹೊಸ ಕೇಸ್ ದಾಖಲಿಸಿ',
+    addPatient: 'ರೋಗಿ ಸೇರಿಸಿ',
+    logout: 'ಲಾಗ್‌ಔಟ್',
+    login: 'ಲಾಗಿನ್',
+    signup: 'ವೈದ್ಯರ ನೋಂದಣಿ',
+    totalPatients: 'ಒಟ್ಟು ರೋಗಿಗಳು',
+    casesToday: 'ಇಂದಿನ ಕೇಸ್‌ಗಳು',
+    prakritiDistribution: 'ದೇಹ ಪ್ರಕೃತಿ ವಿತರಣೆ',
+    recentCases: 'ಇತ್ತೀಚಿನ ಕೇಸ್‌ಗಳು',
+    startCaseNow: 'ಹೊಸ ಕೇಸ್ ಪ್ರಾರಂಭಿಸಿ',
+    viewAllPatients: 'ಎಲ್ಲಾ ರೋಗಿಗಳನ್ನು ನೋಡಿ',
+    patientDetails: 'ರೋಗಿಯ ವಿವರಗಳು',
+    fullName: 'ಪೂರ್ಣ ಹೆಸರು',
+    age: 'ವಯಸ್ಸು',
+    gender: 'ಲಿಂಗ',
+    abhaId: 'ಆಭಾ ಐಡಿ (ABHA)',
+    chiefComplaintLabel: 'ಮುಖ್ಯ ಲಕ್ಷಣಗಳು',
+    ayurvedicDiagnosisLabel: 'ಆಯುರ್ವೇದ ರೋಗ ನಿರ್ಣಯ',
+    prescriptionLabel: 'ಔಷಧಿ ಮತ್ತು ಪ್ರಮಾಣ',
+    printPrescription: 'ಮುದ್ರಿಸಿ / PDF ಡೌನ್‌ಲೋಡ್',
+    backToPatients: '← ರೋಗಿಗಳ ಪಟ್ಟಿಗೆ ಹಿಂತಿರುಗಿ',
+  },
 };
 
 export function LanguageProvider({ children }) {
@@ -194,25 +312,30 @@ export function LanguageProvider({ children }) {
 
   useEffect(() => {
     const saved = localStorage.getItem('ayushcase_lang');
-    if (saved && (saved === 'en' || saved === 'hi')) {
+    if (saved && translations[saved]) {
       setLanguage(saved);
     }
   }, []);
 
   const handleSetLanguage = (lang) => {
-    setLanguage(lang);
-    localStorage.setItem('ayushcase_lang', lang);
+    if (translations[lang]) {
+      setLanguage(lang);
+      localStorage.setItem('ayushcase_lang', lang);
+    }
   };
 
   const t = (key) => {
     if (translations[language] && translations[language][key]) {
       return translations[language][key];
     }
+    if (translations.hi && translations.hi[key] && language !== 'en') {
+      return translations.hi[key];
+    }
     return translations.en[key] || key;
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t, supportedLanguages: SUPPORTED_LANGUAGES }}>
       {children}
     </LanguageContext.Provider>
   );

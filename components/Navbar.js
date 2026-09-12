@@ -45,26 +45,23 @@ export default function Navbar() {
             <Sparkles className="w-3 h-3 text-amber-300" />
             <span>Ayurvedic Clinical Intelligence</span>
           </span>
-          <div className="h-3 w-px bg-emerald-700/60" />
-          {/* Language Switcher */}
-          <div className="flex items-center gap-1 bg-emerald-800/80 rounded-md px-1.5 py-0.5 border border-emerald-600/40">
-            <Globe className="w-3 h-3 text-emerald-300" />
-            <button
-              onClick={() => setLanguage('en')}
-              className={`px-1.5 rounded text-[10px] font-bold transition ${
-                language === 'en' ? 'bg-white text-emerald-950 shadow-xs' : 'text-emerald-200 hover:text-white'
-              }`}
+          <div className="h-3 w-px bg-emerald-700/60 hidden sm:block" />
+          {/* Multi-Language Switcher */}
+          <div className="flex items-center gap-1.5 bg-emerald-800/90 rounded-lg px-2 py-0.5 border border-emerald-600/50 shadow-2xs">
+            <Globe className="w-3 h-3 text-amber-300" />
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="bg-transparent text-emerald-100 font-bold text-[11px] focus:outline-hidden cursor-pointer hover:text-white"
+              aria-label="Select Language"
             >
-              EN
-            </button>
-            <button
-              onClick={() => setLanguage('hi')}
-              className={`px-1.5 rounded text-[10px] font-bold transition ${
-                language === 'hi' ? 'bg-white text-emerald-950 shadow-xs' : 'text-emerald-200 hover:text-white'
-              }`}
-            >
-              हिन्दी
-            </button>
+              <option value="en" className="bg-emerald-950 text-white">🌐 English (EN)</option>
+              <option value="hi" className="bg-emerald-950 text-white">🇮🇳 हिन्दी (Hindi)</option>
+              <option value="mr" className="bg-emerald-950 text-white">🚩 मराठी (Marathi)</option>
+              <option value="gu" className="bg-emerald-950 text-white">🪔 ગુજરાતી (Gujarati)</option>
+              <option value="pa" className="bg-emerald-950 text-white">🌾 ਪੰਜਾਬੀ (Punjabi)</option>
+              <option value="kn" className="bg-emerald-950 text-white">🏵️ ಕನ್ನಡ (Kannada)</option>
+            </select>
           </div>
         </div>
       </div>
